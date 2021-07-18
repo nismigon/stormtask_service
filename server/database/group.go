@@ -1,8 +1,8 @@
 package database
 
 type GroupInformation struct {
-	ID int
-	Name string
+	ID     int
+	Name   string
 	UserID int
 }
 
@@ -32,7 +32,7 @@ func (db *DBHandler) GetGroupByID(id int) (*GroupInformation, error) {
 	if err != nil {
 		return nil, err
 	}
-	for rows.Next() {
+	if rows.Next() {
 		var group GroupInformation
 		err = rows.Scan(&group.ID, &group.Name, &group.UserID)
 		if err != nil {
@@ -55,7 +55,7 @@ func (db *DBHandler) GetGroupByUserAndName(user_id int, name string) (*GroupInfo
 	if err != nil {
 		return nil, err
 	}
-	for rows.Next() {
+	if rows.Next() {
 		var group GroupInformation
 		err = rows.Scan(&group.ID, &group.Name, &group.UserID)
 		if err != nil {
@@ -69,7 +69,7 @@ func (db *DBHandler) GetGroupByUserAndName(user_id int, name string) (*GroupInfo
 // AddGroup add a group to the database
 // If the group have been added, this returns a GroupInformation
 // If an error occurred, this returns an errror
-func (db *DBHandler) AddGroup(user_id int, group_name string) (*GroupInformation, error){
+func (db *DBHandler) AddGroup(user_id int, group_name string) (*GroupInformation, error) {
 	addUserRequest := `INSERT INTO stormtask_group (id_user, name) VALUES (?, ?)`
 	statement, err := db.Handler.Prepare(addUserRequest)
 	if err != nil {
@@ -99,7 +99,7 @@ func (db *DBHandler) ChangeGroupName(group_id int, group_name string) (*GroupInf
 
 // DeleteGroup deletes a group from the table
 // Return nil if the group has been deleted or an error if an error occurred
-func (db *DBHandler) DeleteGroup (group_id int) error {
+func (db *DBHandler) DeleteGroup(group_id int) error {
 	deleteRequest := `DELETE FROM stormtask_group WHERE id_group=?`
 	statement, err := db.Handler.Prepare(deleteRequest)
 	if err != nil {

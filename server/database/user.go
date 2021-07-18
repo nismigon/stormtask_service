@@ -1,11 +1,11 @@
 package database
 
 type UserInformation struct {
-	ID int
-	Name string
-	Email string
+	ID       int
+	Name     string
+	Email    string
 	Password string
-	IsAdmin bool
+	IsAdmin  bool
 }
 
 // UserInit creates the table containing the user if it doesn't already exists
@@ -25,7 +25,7 @@ func (db *DBHandler) UserInit() error {
 // GetUserByEmail returns a pointer to a UserInformation
 // If the user is not found, this function returns nil
 // If the database return an error, this error is propagated
-func (db *DBHandler) GetUserByEmail(email string) (*UserInformation, error){
+func (db *DBHandler) GetUserByEmail(email string) (*UserInformation, error) {
 	getUser := "SELECT id_user, name, email, is_admin FROM stormtask_user WHERE email=?"
 	statement, err := db.Handler.Prepare(getUser)
 	if err != nil {
@@ -35,7 +35,7 @@ func (db *DBHandler) GetUserByEmail(email string) (*UserInformation, error){
 	if err != nil {
 		return nil, err
 	}
-	for rows.Next() {
+	if rows.Next() {
 		var user UserInformation
 		err = rows.Scan(&user.ID, &user.Name, &user.Email, &user.IsAdmin)
 		if err != nil {
@@ -49,7 +49,7 @@ func (db *DBHandler) GetUserByEmail(email string) (*UserInformation, error){
 // GetUserById returns a pointer to a UserInformation
 // If the user is not found, this function returns nil
 // If the database return an error, this error is propagated
-func (db *DBHandler) GetUserById(id int) (*UserInformation, error){
+func (db *DBHandler) GetUserById(id int) (*UserInformation, error) {
 	getUser := "SELECT id_user, name, email, is_admin FROM stormtask_user WHERE id_user=?"
 	statement, err := db.Handler.Prepare(getUser)
 	if err != nil {
@@ -59,7 +59,7 @@ func (db *DBHandler) GetUserById(id int) (*UserInformation, error){
 	if err != nil {
 		return nil, err
 	}
-	for rows.Next() {
+	if rows.Next() {
 		var user UserInformation
 		err = rows.Scan(&user.ID, &user.Name, &user.Email, &user.IsAdmin)
 		if err != nil {
