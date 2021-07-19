@@ -1,3 +1,3 @@
-cd ../server
-docker build -t stormtask_lint_image -f Dockerfile.lint .
-docker run stormtask_lint_image
+cd ..
+docker build -t stormtask_lint_image -f Dockerfile.server.lint .
+docker run --rm stormtask_lint_image

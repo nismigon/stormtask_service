@@ -13,6 +13,7 @@ services:
     container_name: stormtask_test_container
     depends_on:
       - database
+    command: ["./wait-for-it.sh", "stormtask_database_container:3306", "--", "go", "test", "./...", "-cover"] 
     environment:
       DATABASE_URL: stormtask_database_container
       DATABASE_USER: stormtask_user

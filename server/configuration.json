@@ -1,5 +1,5 @@
 {
-    "database_url": "localhost",
+    "database_url": "stormtask_database_container",
     "database_user": "stormtask_user",
     "database_password": "vV4UbidqXzCj62pxiSsC8gnQTtNfcm",
     "database_name": "stormtask_database"
