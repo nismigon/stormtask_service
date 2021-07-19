@@ -8,9 +8,8 @@ server-go-lint:
   services:
   - docker:dind
   script:
-    - cd server
-    - docker build -t stormtask_image_lint -f Dockerfile.lint .
-    - docker run stormtask_image_lint
+    - docker build -t stormtask_lint_image -f server/Dockerfile.lint .
+    - docker run stormtask_lint_image
 
 server-go-test:
   stage: test
@@ -18,4 +17,5 @@ server-go-test:
   services:
   - docker:dind
   script:
+  - docker build -t stormtask_test_image -f server/Dockerfile.test .
   - docker-compose -f docker/compose_test.yaml -p stormtask_compose_test up --exit-code-from test
