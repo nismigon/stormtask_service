@@ -26,7 +26,7 @@ func (db *DBHandler) UserInit() error {
 // If the user is not found, this function returns nil
 // If the database return an error, this error is propagated
 func (db *DBHandler) GetUserByEmail(email string) (*UserInformation, error) {
-	getUser := "SELECT id_user, name, email, is_admin FROM stormtask_user WHERE email=?"
+	getUser := "SELECT id_user, name, password, email, is_admin FROM stormtask_user WHERE email=?"
 	statement, err := db.Handler.Prepare(getUser)
 	if err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func (db *DBHandler) GetUserByEmail(email string) (*UserInformation, error) {
 	}
 	if rows.Next() {
 		var user UserInformation
-		err = rows.Scan(&user.ID, &user.Name, &user.Email, &user.IsAdmin)
+		err = rows.Scan(&user.ID, &user.Name, &user.Password, &user.Email, &user.IsAdmin)
 		if err != nil {
 			return nil, err
 		}
@@ -50,7 +50,7 @@ func (db *DBHandler) GetUserByEmail(email string) (*UserInformation, error) {
 // If the user is not found, this function returns nil
 // If the database return an error, this error is propagated
 func (db *DBHandler) GetUserByID(id int) (*UserInformation, error) {
-	getUser := "SELECT id_user, name, email, is_admin FROM stormtask_user WHERE id_user=?"
+	getUser := "SELECT id_user, name, password, email, is_admin FROM stormtask_user WHERE id_user=?"
 	statement, err := db.Handler.Prepare(getUser)
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func (db *DBHandler) GetUserByID(id int) (*UserInformation, error) {
 	}
 	if rows.Next() {
 		var user UserInformation
-		err = rows.Scan(&user.ID, &user.Name, &user.Email, &user.IsAdmin)
+		err = rows.Scan(&user.ID, &user.Name, &user.Password, &user.Email, &user.IsAdmin)
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +121,7 @@ func (db *DBHandler) ModifyUser(id int, email, name, password string) (*UserInfo
 // DeleteUser delete a user of the table
 // Return nil if the user have been deleted or err if an error occur'ed
 func (db *DBHandler) DeleteUser(id int) error {
-	deleteUserRequest := `DELETE FROM stormtask_user WHERE email=?`
+	deleteUserRequest := `DELETE FROM stormtask_user WHERE id_user=?`
 	statement, err := db.Handler.Prepare(deleteUserRequest)
 	if err != nil {
 		return err
