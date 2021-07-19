@@ -82,9 +82,9 @@ func (db *DBHandler) AddGroup(userID int, groupName string) (*GroupInformation, 
 	return db.GetGroupByUserAndName(userID, groupName)
 }
 
-// ChangeGroupName change the name of the group
+// ModifyGroup change the name of the group
 // Return a group object or an error if an error occurred in the database
-func (db *DBHandler) ChangeGroupName(groupID int, groupName string) (*GroupInformation, error) {
+func (db *DBHandler) ModifyGroup(groupID int, groupName string) (*GroupInformation, error) {
 	changeGroupNameRequest := `UPDATE stormtask_group SET name=? WHERE id_group=?`
 	statement, err := db.Handler.Prepare(changeGroupNameRequest)
 	if err != nil {
