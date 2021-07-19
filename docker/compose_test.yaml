@@ -1,4 +1,4 @@
-version: "3.9"
+version: "3.3"
 services:
   database:
     image: mariadb
@@ -11,7 +11,7 @@ services:
   test:
     build:
       context: ../server
-      dockerfile: Dockerfile_test
+      dockerfile: Dockerfile.test
     container_name: stormtask_image_test
     depends_on:
       - database
