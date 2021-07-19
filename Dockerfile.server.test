@@ -1,6 +1,7 @@
 FROM golang:1.16
 WORKDIR /app
 COPY ./scripts/wait-for-it.sh .
+RUN chmod +x wait-for-it.sh
 COPY ./server .
 RUN go install
 CMD ["go", "test", "./...", "-cover"]
