@@ -4,6 +4,8 @@ stages:
 
 server-go-lint:
   stage: lint
+  services:
+  - docker:dind
   script:
     - cd server
     - docker build -t stormtask_image_lint -f server/Dockerfile.lint .
