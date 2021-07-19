@@ -18,4 +18,4 @@ server-go-test:
   services:
   - docker:dind
   script:
-  - docker-compose -f docker/compose_test.yaml -p stormtask_compose_test up --exit-code-from stormtask_image_test
+  - docker-compose -f docker/compose_test.yaml -p stormtask_compose_test up --exit-code-from test
