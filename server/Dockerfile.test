@@ -2,4 +2,4 @@ FROM golang:1.16
 WORKDIR /app
 COPY . .
 RUN go install
-ENTRYPOINT ["go", "test", "./src/...", "-cover"]
+ENTRYPOINT ["go", "test", "./...", "-cover"]
