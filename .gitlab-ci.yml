@@ -4,6 +4,7 @@ stages:
 
 server-go-lint:
   stage: lint
+  image: docker
   services:
   - docker:dind
   script:
