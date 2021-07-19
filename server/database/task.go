@@ -1,22 +1,22 @@
 package database
 
 type TaskInformation struct {
-	ID int
-	Name string
+	ID          int
+	Name        string
 	Description string
-	IsFinished bool
-	IsArchived bool
-	IDGroup int
+	IsFinished  bool
+	IsArchived  bool
+	IDGroup     int
 }
 
 // TaskInit initialize the task table
-func (db *DBHandler) TaskInit () error {
+func (db *DBHandler) TaskInit() error {
 	createTaskTable := `CREATE TABLE IF NOT EXISTS stormtask_task (
 		id_task INT PRIMARY KEY AUTO_INCREMENT,
 		name VARCHAR(255) NOT NULL,
 		description TEXT,
-		isFinished BOOLEAN NOT NULL,
-		isArchived BOOLEAN NOT NULL,
+		is_finished BOOLEAN NOT NULL,
+		is_archived BOOLEAN NOT NULL,
 		id_group INT REFERENCES stormtask_group(id_group)
 	)`
 	_, err := db.Handler.Exec(createTaskTable)
@@ -49,7 +49,7 @@ func (db *DBHandler) GetTaskByID(id int) (*TaskInformation, error) {
 // In the nominal case this return a TaskInformation table pointer
 // If an error occurred, this returns nil and the error
 // If the group is not found, this returns nil and nil
-func (db *DBHandler) GetTaskByGroup (id int) (*[] TaskInformation, error) {
+func (db *DBHandler) GetTaskByGroup(id int) (*[]TaskInformation, error) {
 	getTasksByGroup := "SELECT * FROM stormtask_task WHERE id_group = ?"
 	statement, err := db.Handler.Prepare(getTasksByGroup)
 	if err != nil {
@@ -76,8 +76,13 @@ func (db *DBHandler) GetTaskByGroup (id int) (*[] TaskInformation, error) {
 // AddTask add a task to the database
 // In the nominal case, this returns the task created
 // In case of error, this returns nil and the error
-func (db *DBHandler) AddTask(name, description string, isFinished, isArchived bool, group int) (*TaskInformation, error) {
-	insertTask := `INSERT INTO stormtask_task(name, description, isFinished, isArchived, id_group) VALUES (?,?,?,?,?)`
+func (db *DBHandler) AddTask(
+	name,
+	description string,
+	isFinished,
+	isArchived bool,
+	group int) (*TaskInformation, error) {
+	insertTask := `INSERT INTO stormtask_task(name, description, is_finished, is_archived, id_group) VALUES (?,?,?,?,?)`
 	statement, err := db.Handler.Prepare(insertTask)
 	if err != nil {
 		return nil, err
@@ -97,8 +102,14 @@ func (db *DBHandler) AddTask(name, description string, isFinished, isArchived bo
 // ModifyTask modify a task selected by it id
 // In the nominal case, this returns a TaskInformation
 // In case of error, this returns nil and the error
-func (db *DBHandler) ModifyTask (id int, name, description string, isFinished, isArchived bool, group int) (*TaskInformation, error) {
-	modifyTask := "UPDATE stormtask_task SET name = ?, description = ?, isFinished = ?, isArchived = ?, id_group = ? WHERE id_task = ?"
+func (db *DBHandler) ModifyTask(id int,
+	name,
+	description string,
+	isFinished,
+	isArchived bool,
+	group int) (*TaskInformation, error) {
+	modifyTask := "UPDATE stormtask_task SET name = ?, description = ?, is_finished = ?," +
+		"is_archived = ?, id_group = ? WHERE id_task = ?"
 	statement, err := db.Handler.Prepare(modifyTask)
 	if err != nil {
 		return nil, err
@@ -113,7 +124,7 @@ func (db *DBHandler) ModifyTask (id int, name, description string, isFinished, i
 
 // DeleteTask delete a task from the database
 // If an error occurred, this returns an error, else, it returns nil
-func (db *DBHandler) DeleteTask (id int) error {
+func (db *DBHandler) DeleteTask(id int) error {
 	deleteTask := "DELETE FROM stormtask_task WHERE id_task = ?"
 	statement, err := db.Handler.Prepare(deleteTask)
 	if err != nil {

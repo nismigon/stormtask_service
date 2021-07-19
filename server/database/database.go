@@ -3,24 +3,24 @@ package database
 import (
 	"database/sql"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" // Needed MySQL driver
 )
 
 type DBHandler struct {
 	Handler  *sql.DB // Handler of the database connection
-	Url      string  // Url to connect to the database
+	URL      string  // Url to connect to the database
 	User     string  // User to connect to the database
 	Password string  // Password to connect to the database
 	Name     string  // Name of the database
 }
 
 // Init initializes the connection to the database
-// databaseUrl 		The URL of the database
+// databaseURL 		The URL of the database
 // databaseUser 	The user to connect to the database
 // databasePassword The password to connect to the database
 // databaseName 	The name of the database
-func Init(databaseUrl, databaseUser, databasePassword, databaseName string) (*DBHandler, error) {
-	dataSource := databaseUser + ":" + databasePassword + "@tcp(" + databaseUrl + ")/"
+func Init(databaseURL, databaseUser, databasePassword, databaseName string) (*DBHandler, error) {
+	dataSource := databaseUser + ":" + databasePassword + "@tcp(" + databaseURL + ")/"
 	// Open the connection with the database
 	db, err := sql.Open("mysql", dataSource)
 	if err != nil {
@@ -36,7 +36,7 @@ func Init(databaseUrl, databaseUser, databasePassword, databaseName string) (*DB
 	if err != nil {
 		return nil, err
 	}
-	//Get an handler for the database
+	// Get an handler for the database
 	dataSource = dataSource + databaseName
 	db, err = sql.Open("mysql", dataSource)
 	if err != nil {
@@ -44,7 +44,7 @@ func Init(databaseUrl, databaseUser, databasePassword, databaseName string) (*DB
 	}
 	handler := &DBHandler{
 		Handler:  db,
-		Url:      databaseUrl,
+		URL:      databaseURL,
 		User:     databaseUser,
 		Password: databasePassword,
 		Name:     databaseName,

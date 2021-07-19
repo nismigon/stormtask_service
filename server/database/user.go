@@ -49,7 +49,7 @@ func (db *DBHandler) GetUserByEmail(email string) (*UserInformation, error) {
 // GetUserById returns a pointer to a UserInformation
 // If the user is not found, this function returns nil
 // If the database return an error, this error is propagated
-func (db *DBHandler) GetUserById(id int) (*UserInformation, error) {
+func (db *DBHandler) GetUserByID(id int) (*UserInformation, error) {
 	getUser := "SELECT id_user, name, email, is_admin FROM stormtask_user WHERE id_user=?"
 	statement, err := db.Handler.Prepare(getUser)
 	if err != nil {
@@ -84,20 +84,19 @@ func (db *DBHandler) Authenticate(email, password string) (*UserInformation, err
 	}
 	if user.Password == password {
 		return user, nil
-	} else {
-		return nil, nil
 	}
+	return nil, nil
 }
 
 // AddUser add a user to the database
 // Return user if the user have been added or an error if the database return an error
-func (db *DBHandler) AddUser(email, name, password string, is_admin bool) (*UserInformation, error) {
+func (db *DBHandler) AddUser(email, name, password string, isAdmin bool) (*UserInformation, error) {
 	addUserRequest := `INSERT INTO stormtask_user (name, email, password, is_admin) VALUES (?, ?, ?, ?)`
 	statement, err := db.Handler.Prepare(addUserRequest)
 	if err != nil {
 		return nil, err
 	}
-	_, err = statement.Exec(name, email, password, is_admin)
+	_, err = statement.Exec(name, email, password, isAdmin)
 	if err != nil {
 		return nil, err
 	}
@@ -116,11 +115,11 @@ func (db *DBHandler) ModifyUser(id int, email, name, password string) (*UserInfo
 	if err != nil {
 		return nil, err
 	}
-	return db.GetUserById(id)
+	return db.GetUserByID(id)
 }
 
 // DeleteUser delete a user of the table
-// Return nil if the user have been deleted or err if an error occured
+// Return nil if the user have been deleted or err if an error occur'ed
 func (db *DBHandler) DeleteUser(id int) error {
 	deleteUserRequest := `DELETE FROM stormtask_user WHERE email=?`
 	statement, err := db.Handler.Prepare(deleteUserRequest)

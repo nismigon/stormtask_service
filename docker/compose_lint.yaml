@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  database:
+    image: mariadb
+    container_name: stormtask_general_database
+    environment:
+      MARIADB_ROOT_PASSWORD: mhYRrXUux5i7PmXLqmDuLrqEQ5tAQa
+      MARIADB_DATABASE: stormtask_database
+      MARIADB_USER: stormtask_user
+      MARIADB_PASSWORD: vV4UbidqXzCj62pxiSsC8gnQTtNfcm
+  test:
+    build:
+      context: ../server
+      dockerfile: Dockerfile.test
+    container_name: stormtask_image_test
+    depends_on:
+      - database
+    environment:
+      DATABASE_URL: stormtask_general_database
+      DATABASE_USER: stormtask_user
+      DATABASE_PASSWORD: vV4UbidqXzCj62pxiSsC8gnQTtNfcm
+      DATABASE_NAME: stormtask_database

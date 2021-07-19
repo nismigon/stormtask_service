@@ -15,7 +15,11 @@ type Server struct {
 // InitServer initializes the http server and the database
 func InitServer(configuration configuration.ConfStruct) (*Server, error) {
 	router := mux.NewRouter()
-	db, err := database.Init(configuration.DatabaseUrl, configuration.DatabaseUser, configuration.DatabasePassword, configuration.DatabaseName)
+	db, err := database.Init(
+		configuration.DatabaseURL,
+		configuration.DatabaseUser,
+		configuration.DatabasePassword,
+		configuration.DatabaseName)
 	if err != nil {
 		return nil, err
 	}

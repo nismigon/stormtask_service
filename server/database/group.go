@@ -45,13 +45,13 @@ func (db *DBHandler) GetGroupByID(id int) (*GroupInformation, error) {
 
 // GetGroupByUserAndName get a group which correspond to the user and the name
 // Return a group or an error if a database error occurred
-func (db *DBHandler) GetGroupByUserAndName(user_id int, name string) (*GroupInformation, error) {
+func (db *DBHandler) GetGroupByUserAndName(userID int, name string) (*GroupInformation, error) {
 	getGroupRequest := `SELECT id_group, name, id_user FROM stormtask_group WHERE id_user=? AND name=?`
 	statement, err := db.Handler.Prepare(getGroupRequest)
 	if err != nil {
 		return nil, err
 	}
-	rows, err := statement.Query(user_id, name)
+	rows, err := statement.Query(userID, name)
 	if err != nil {
 		return nil, err
 	}
@@ -69,42 +69,42 @@ func (db *DBHandler) GetGroupByUserAndName(user_id int, name string) (*GroupInfo
 // AddGroup add a group to the database
 // If the group have been added, this returns a GroupInformation
 // If an error occurred, this returns an errror
-func (db *DBHandler) AddGroup(user_id int, group_name string) (*GroupInformation, error) {
+func (db *DBHandler) AddGroup(userID int, groupName string) (*GroupInformation, error) {
 	addUserRequest := `INSERT INTO stormtask_group (id_user, name) VALUES (?, ?)`
 	statement, err := db.Handler.Prepare(addUserRequest)
 	if err != nil {
 		return nil, err
 	}
-	_, err = statement.Exec(user_id, group_name)
+	_, err = statement.Exec(userID, groupName)
 	if err != nil {
 		return nil, err
 	}
-	return db.GetGroupByUserAndName(user_id, group_name)
+	return db.GetGroupByUserAndName(userID, groupName)
 }
 
 // ChangeGroupName change the name of the group
 // Return a group object or an error if an error occurred in the database
-func (db *DBHandler) ChangeGroupName(group_id int, group_name string) (*GroupInformation, error) {
+func (db *DBHandler) ChangeGroupName(groupID int, groupName string) (*GroupInformation, error) {
 	changeGroupNameRequest := `UPDATE stormtask_group SET name=? WHERE id_group=?`
 	statement, err := db.Handler.Prepare(changeGroupNameRequest)
 	if err != nil {
 		return nil, err
 	}
-	_, err = statement.Exec(group_name, group_id)
+	_, err = statement.Exec(groupName, groupID)
 	if err != nil {
 		return nil, err
 	}
-	return db.GetGroupByID(group_id)
+	return db.GetGroupByID(groupID)
 }
 
 // DeleteGroup deletes a group from the table
 // Return nil if the group has been deleted or an error if an error occurred
-func (db *DBHandler) DeleteGroup(group_id int) error {
+func (db *DBHandler) DeleteGroup(groupID int) error {
 	deleteRequest := `DELETE FROM stormtask_group WHERE id_group=?`
 	statement, err := db.Handler.Prepare(deleteRequest)
 	if err != nil {
 		return err
 	}
-	_, err = statement.Exec(group_id)
+	_, err = statement.Exec(groupID)
 	return err
 }

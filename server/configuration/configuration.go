@@ -7,7 +7,7 @@ import (
 )
 
 type ConfStruct struct {
-	DatabaseUrl      string `json:"database_url"`
+	DatabaseURL      string `json:"database_url"`
 	DatabaseUser     string `json:"database_user"`
 	DatabasePassword string `json:"database_password"`
 	DatabaseName     string `json:"database_name"`
@@ -32,9 +32,9 @@ func Parse(path string) (*ConfStruct, error) {
 	if err != nil {
 		return nil, err
 	}
-	databaseUrl, set := os.LookupEnv("DATABASE_URL")
+	databaseURL, set := os.LookupEnv("DATABASE_URL")
 	if set {
-		conf.DatabaseUrl = databaseUrl
+		conf.DatabaseURL = databaseURL
 	}
 	databaseUser, set := os.LookupEnv("DATABASE_USER")
 	if set {
