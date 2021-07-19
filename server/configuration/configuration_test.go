@@ -124,3 +124,10 @@ func TestParseEnvironmentDatabaseName(t *testing.T) {
 		}
 	}
 }
+
+func TestWrongPath(t *testing.T) {
+	_, err := Parse("toto.json")
+	if err == nil {
+		t.Errorf("This path is wrong, no error has been returned, you need to fix it")
+	}
+}
