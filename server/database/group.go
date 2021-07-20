@@ -14,7 +14,8 @@ func (db *DBHandler) GroupInit() error {
 		id_user INT,
 		name VARCHAR(255),
 		PRIMARY KEY (id_group),
-		FOREIGN KEY (id_user) REFERENCES stormtask_user (id_user)
+		FOREIGN KEY (id_user) REFERENCES stormtask_user (id_user),
+		CONSTRAINT group_name_per_user_unique UNIQUE (id_user, name)
 	)`
 	_, err := db.Handler.Exec(createGroupTable)
 	return err

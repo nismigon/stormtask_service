@@ -230,3 +230,27 @@ func TestGetGroupByUserAndNameWrongName(t *testing.T) {
 	}
 	AfterGroupTest(handler, userID)
 }
+
+func TestUniqueGroupNameByUser(t *testing.T) {
+	handler, userID, err := BeforeGroupTest()
+	if err != nil {
+		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
+	}
+	tmpGroup, err := handler.AddGroup(userID, "TestGroup")
+	if err != nil {
+		t.Errorf("Failed to add group : " + err.Error())
+	}
+	group, err := handler.AddGroup(userID, "TestGroup")
+	if err == nil {
+		t.Errorf("Failed to add group : no error whereas break unique constraint on name")
+		err = handler.DeleteGroup(group.ID)
+		if err != nil {
+			t.Errorf("Failed to delete group : " + err.Error())
+		}
+	}
+	err = handler.DeleteGroup(tmpGroup.ID)
+	if err != nil {
+		t.Errorf("Failed to delete group : " + err.Error())
+	}
+	AfterGroupTest(handler, userID)
+}
