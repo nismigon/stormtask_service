@@ -23,10 +23,12 @@ func InitServer(configuration configuration.ConfStruct) (*Server, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Server{
+	server := &Server{
 		Router:   router,
 		Database: db,
-	}, nil
+	}
+	server.InitRoutes()
+	return server, nil
 }
 
 // Close close the server connection
