@@ -227,3 +227,27 @@ func TestGetTaskByGroupRight(t *testing.T) {
 	}
 	AfterTaskTest(handler, groupID)
 }
+
+func TestUniqueConstraintTask(t *testing.T) {
+	handler, groupID, err := BeforeTaskTest()
+	if err != nil {
+		t.Errorf("Failed to initialize the task test, please see other test to see what happens : " + err.Error())
+	}
+	tmpTask, err := handler.AddTask("Test", "Description", false, false, groupID)
+	if err != nil {
+		t.Errorf("Failed to add task : " + err.Error())
+	}
+	task, err := handler.AddTask("Test", "An other description", false, false, groupID)
+	if err == nil {
+		t.Errorf("Failed to add task : no error whereas break unique constraint on name")
+		err = handler.DeleteTask(task.ID)
+		if err != nil {
+			t.Errorf("Failed to delete task : " + err.Error())
+		}
+	}
+	err = handler.DeleteTask(tmpTask.ID)
+	if err != nil {
+		t.Errorf("Failed to delete task : " + err.Error())
+	}
+	AfterTaskTest(handler, groupID)
+}

@@ -17,7 +17,8 @@ func (db *DBHandler) TaskInit() error {
 		description TEXT,
 		is_finished BOOLEAN NOT NULL,
 		is_archived BOOLEAN NOT NULL,
-		id_group INT REFERENCES stormtask_group(id_group)
+		id_group INT REFERENCES stormtask_group(id_group),
+		CONSTRAINT task_name_per_group_unique UNIQUE (id_group, name)
 	)`
 	_, err := db.Handler.Exec(createTaskTable)
 	return err
