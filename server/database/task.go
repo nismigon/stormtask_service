@@ -49,7 +49,7 @@ func (db *DBHandler) GetTaskByID(id int) (*TaskInformation, error) {
 // In the nominal case this return a TaskInformation table pointer
 // If an error occurred, this returns nil and the error
 // If the group is not found, this returns nil and nil
-func (db *DBHandler) GetTaskByGroup(id int) (*[]TaskInformation, error) {
+func (db *DBHandler) GetTasksByGroup(id int) (*[]TaskInformation, error) {
 	getTasksByGroup := "SELECT * FROM stormtask_task WHERE id_group = ?"
 	statement, err := db.Handler.Prepare(getTasksByGroup)
 	if err != nil {
