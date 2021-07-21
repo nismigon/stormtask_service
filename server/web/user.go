@@ -5,25 +5,26 @@ import (
 	"net/http"
 )
 
-type Authentication struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
-
 // Authenticate is an HTTP handler method to get a client authentication
 func (s *Server) Authenticate(rw http.ResponseWriter, r *http.Request) {
-	var auth Authentication
-	err := json.NewDecoder(r.Body).Decode(&auth)
+	var cred Credentials
+	err := json.NewDecoder(r.Body).Decode(&cred)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusBadRequest)
+		rw.WriteHeader(http.StatusBadRequest)
+		return
 	}
-	user, err := s.Database.Authenticate(auth.Email, auth.Password)
+	token, err := s.generateToken(cred)
 	if err != nil {
 		rw.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	if user == nil {
+	if token == "" {
 		rw.WriteHeader(http.StatusUnauthorized)
-	} else {
-		rw.WriteHeader(http.StatusOK)
+		return
 	}
+	http.SetCookie(rw, &http.Cookie{
+		Name:  "Token",
+		Value: token,
+	})
+	rw.WriteHeader(http.StatusOK)
 }

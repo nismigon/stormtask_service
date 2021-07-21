@@ -8,8 +8,9 @@ import (
 )
 
 type Server struct {
-	Router   *mux.Router
-	Database *database.DBHandler
+	Router        *mux.Router
+	Database      *database.DBHandler
+	Configuration configuration.ConfStruct
 }
 
 // InitServer initializes the http server and the database
@@ -24,8 +25,9 @@ func InitServer(configuration configuration.ConfStruct) (*Server, error) {
 		return nil, err
 	}
 	server := &Server{
-		Router:   router,
-		Database: db,
+		Router:        router,
+		Database:      db,
+		Configuration: configuration,
 	}
 	server.InitRoutes()
 	return server, nil

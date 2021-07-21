@@ -11,6 +11,7 @@ type ConfStruct struct {
 	DatabaseUser     string `json:"database_user"`
 	DatabasePassword string `json:"database_password"`
 	DatabaseName     string `json:"database_name"`
+	JWTSecretKey     string `json:"jwt_secret_key"`
 }
 
 // Parse analyze a configuration file and return the corresponding struct
@@ -47,6 +48,10 @@ func Parse(path string) (*ConfStruct, error) {
 	databaseName, set := os.LookupEnv("DATABASE_NAME")
 	if set {
 		conf.DatabaseName = databaseName
+	}
+	jwtSecretKey, set := os.LookupEnv("JWT_SECRET_KEY")
+	if set {
+		conf.JWTSecretKey = jwtSecretKey
 	}
 	return &conf, nil
 }

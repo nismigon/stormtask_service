@@ -95,6 +95,36 @@ func TestParseEnvironmentDatabasePassword(t *testing.T) {
 	}
 }
 
+func TestParseEnvironmentJWTSecretKey(t *testing.T) {
+	conf, err := Parse("../configuration.json")
+	if err != nil {
+		t.Errorf("Failed to find the configuration.json file")
+	}
+	jwt_secret_key, set := os.LookupEnv("JWT_SECRET_KEY")
+	if !set {
+		err := os.Setenv("JWT_SECRET_KEY", "toto")
+		if err != nil {
+			t.Errorf("Failed to set environment variable DATABASE_URL")
+		}
+		conf, err = Parse("../configuration.json")
+		if err != nil {
+			t.Errorf("Failed to find the configuration.json file")
+		}
+		if conf.JWTSecretKey != "toto" {
+			t.Errorf("Failed to get the environment variable DATABASE_URL")
+		}
+		err = os.Unsetenv("JWT_SECRET_KEY")
+		if err != nil {
+			t.Errorf("Failed to unset the environment variable DATABASE_URL")
+		}
+	} else {
+		if conf.JWTSecretKey != jwt_secret_key {
+			t.Errorf("Failed to get the environment variable DATABASE_URL\n\tExpected : %q\n\tGiven : %q",
+				jwt_secret_key, conf.JWTSecretKey)
+		}
+	}
+}
+
 func TestParseEnvironmentDatabaseName(t *testing.T) {
 	conf, err := Parse("../configuration.json")
 	if err != nil {

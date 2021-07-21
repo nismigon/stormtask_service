@@ -2,5 +2,6 @@
     "database_url": "stormtask_database_container",
     "database_user": "stormtask_user",
     "database_password": "vV4UbidqXzCj62pxiSsC8gnQTtNfcm",
-    "database_name": "stormtask_database"
+    "database_name": "stormtask_database",
+    "jwt_secret_key": "SgVkYp3s6v9y$B&E)H@McQfThWmZq4t7"
 }
