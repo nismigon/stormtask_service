@@ -29,7 +29,7 @@ func TestGenerateTokenRight(t *testing.T) {
 	if token == "" {
 		t.Errorf("Failed to generate the token")
 	}
-	claims, err := server.validateAndExtractToken(token)
+	claims, err := server.ValidateAndExtractToken(token)
 	if err != nil {
 		t.Errorf("Failed to validate and extract the token : " + err.Error())
 	}

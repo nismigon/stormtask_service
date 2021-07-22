@@ -19,6 +19,10 @@ type Credentials struct {
 	Password string
 }
 
+// GenerateToken generates a token with the provided credentials
+// In the nominal case, this function generates a string corresponding to the token
+// If the credentials are not found in the database, this returns an empty string
+// If an error occurred, this returns the error
 func (s *Server) generateToken(cred Credentials) (string, error) {
 	user, err := s.Database.Authenticate(cred.Email, cred.Password)
 	if err != nil {
@@ -27,6 +31,7 @@ func (s *Server) generateToken(cred Credentials) (string, error) {
 	if user == nil {
 		return "", nil
 	}
+	// Generation of the claim object
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := &Claims{
 		ID:      user.ID,
@@ -47,7 +52,11 @@ func (s *Server) generateToken(cred Credentials) (string, error) {
 	return tokenString, nil
 }
 
-func (s *Server) validateAndExtractToken(token string) (*Claims, error) {
+// ValidateAndExtractToken get the token and extract it. It also verify if the token is valid.
+// In the nominal case, this returns a Claim object with all the information
+// If the token isn't valid, this returns nil
+// If an error occurred, this returns the erro
+func (s *Server) ValidateAndExtractToken(token string) (*Claims, error) {
 	// Initialize a new instance of `Claims`
 	claims := &Claims{}
 
@@ -61,6 +70,7 @@ func (s *Server) validateAndExtractToken(token string) (*Claims, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Valid token verification
 	if !parsedToken.Valid {
 		return nil, nil
 	}
