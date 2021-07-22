@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-const cookieName = "TOKEN"
+const cookieName = "Token"
 
 func BeforeUserTest() (*Server, *httptest.Server, error) {
 	conf, err := configuration.Parse("../configuration.json")
