@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"naleakan/stormtask/configuration"
 	"net/http"
 	"net/http/httptest"
@@ -131,4 +132,134 @@ func TestAuthenticateWrongPassword(t *testing.T) {
 		t.Errorf("Failed to delete the user : " + err.Error())
 	}
 	AfterUserTest(server, httpServer)
+}
+
+func TestAddUserRight(t *testing.T) {
+	server, httpServer, err := BeforeUserTest()
+	if err != nil {
+		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
+	}
+	user := AddUserStruct{
+		Email:    "test@test.com",
+		Password: "Test",
+		Name:     "Test",
+	}
+	content, err := json.Marshal(user)
+	if err != nil {
+		t.Errorf("Failed to marshal the add user struct needed to execute the request : " + err.Error())
+	}
+	response, err := http.Post(httpServer.URL+"/user", "application/json", bytes.NewReader(content))
+	if err != nil {
+		t.Errorf("Failed to POST the data on the web server : " + err.Error())
+	}
+	if response.StatusCode != http.StatusOK {
+		t.Errorf("Failed to add the user with error code : " + fmt.Sprint(response.StatusCode))
+	}
+	userInfo, err := server.Database.GetUserByEmail("test@test.com")
+	if err != nil {
+		t.Errorf("Failed to get the added user : " + err.Error())
+	}
+	err = server.Database.DeleteUser(userInfo.ID)
+	if err != nil {
+		t.Errorf("Failed to delete the user : " + err.Error())
+	}
+	AfterUserTest(server, httpServer)
+}
+
+func TestAddUserWrongAlreadyExistEmail(t *testing.T) {
+	server, httpServer, err := BeforeUserTest()
+	if err != nil {
+		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
+	}
+	_, err = server.Database.AddUser("test@test.com", "Test", "Test", false)
+	if err != nil {
+		t.Errorf("Failed to add the user : " + err.Error())
+	}
+	userStruct := AddUserStruct{
+		Email:    "test@test.com",
+		Password: "Test",
+		Name:     "Test",
+	}
+	content, err := json.Marshal(userStruct)
+	if err != nil {
+		t.Errorf("Failed to marshal the add user struct needed to execute the request : " + err.Error())
+	}
+	response, err := http.Post(httpServer.URL+"/user", "application/json", bytes.NewReader(content))
+	if err != nil {
+		t.Errorf("Failed to POST the data on the web server : " + err.Error())
+	}
+	if response.StatusCode != http.StatusUnauthorized {
+		t.Errorf("Failed to add the user with error code : A dupplicated email doesn't return an unauthorized code")
+	}
+	userInfo, err := server.Database.GetUserByEmail("test@test.com")
+	if err != nil {
+		t.Errorf("Failed to get the added user : " + err.Error())
+	}
+	err = server.Database.DeleteUser(userInfo.ID)
+	if err != nil {
+		t.Errorf("Failed to delete the user : " + err.Error())
+	}
+	AfterUserTest(server, httpServer)
+}
+
+func TestDeleteUserRight(t *testing.T) {
+	server, httpServer, err := BeforeUserTest()
+	if err != nil {
+		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
+	}
+	user, err := server.Database.AddUser("test@test.com", "Test", "Test", false)
+	if err != nil {
+		t.Errorf("Failed to add the user : " + err.Error())
+	}
+	cred := Credentials{
+		Email:    "test@test.com",
+		Password: "Test",
+	}
+	content, err := json.Marshal(cred)
+	if err != nil {
+		t.Errorf("Failed to marshal credentials : " + err.Error())
+	}
+	response, err := http.Post(httpServer.URL+"/authenticate", "application/json", bytes.NewReader(content))
+	if err != nil {
+		t.Errorf("Failed to POST the request on the web server : " + err.Error())
+	}
+	if response.StatusCode != http.StatusOK {
+		t.Errorf("Failed to authenticate the user with error code : Should return a status 200")
+	}
+	cookies := response.Cookies()
+	var cookie *http.Cookie = nil
+	for _, tmpCookie := range cookies {
+		if tmpCookie.Name == "Token" && tmpCookie.Value != "" {
+			cookie = tmpCookie
+		}
+	}
+	if cookie == nil {
+		t.Errorf("Failed to find the token cookie")
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("DELETE", httpServer.URL+"/user", nil)
+	if err != nil {
+		t.Errorf("Failed to create a delete request : " + err.Error())
+	}
+	if cookie != nil {
+		req.Header.Set("Cookie", cookie.Name+"="+cookie.Value)
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to execute the HTTP request : " + err.Error())
+	}
+	if resp.StatusCode != http.StatusOK {
+		t.Errorf("Failed to delete the user with error code : Should retun a status 200")
+	}
+	deletedUser, err := server.Database.GetUserByID(user.ID)
+	if err != nil {
+		t.Errorf("Failed to get the user by it's id : " + err.Error())
+	}
+	if deletedUser != nil {
+		t.Errorf("The user have not been deleted")
+		err = server.Database.DeleteUser(user.ID)
+		if err != nil {
+			t.Errorf("Failed to delete the user from the database : " + err.Error())
+		}
+	}
 }
