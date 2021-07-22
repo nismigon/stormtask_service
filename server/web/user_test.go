@@ -10,6 +10,8 @@ import (
 	"testing"
 )
 
+const cookieName = "TOKEN"
+
 func BeforeUserTest() (*Server, *httptest.Server, error) {
 	conf, err := configuration.Parse("../configuration.json")
 	if err != nil {
@@ -56,7 +58,7 @@ func TestAuthenticateRight(t *testing.T) {
 	found := false
 	cookies := response.Cookies()
 	for _, cookie := range cookies {
-		if cookie.Name == "Token" && cookie.Value != "" {
+		if cookie.Name == cookieName && cookie.Value != "" {
 			found = true
 		}
 	}
@@ -227,9 +229,9 @@ func TestDeleteUserRight(t *testing.T) {
 		t.Errorf("Failed to authenticate the user with error code : Should return a status 200")
 	}
 	cookies := response.Cookies()
-	var cookie *http.Cookie = nil
+	var cookie *http.Cookie
 	for _, tmpCookie := range cookies {
-		if tmpCookie.Name == "Token" && tmpCookie.Value != "" {
+		if tmpCookie.Name == cookieName && tmpCookie.Value != "" {
 			cookie = tmpCookie
 		}
 	}
