@@ -79,7 +79,8 @@ func (s *Server) ValidateAndExtractToken(token string) (*Claims, error) {
 }
 
 // VerifyToken is a middleware to check if the JWT Cookie is present
-// If
+// In the nominal case, this call the next http handler
+// If the cookie is not in the request, this close the connection with a 401 HTTP code (Unauthorized)
 func (s *Server) VerifyToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie := GetCookieByNameForRequest(r, s.Configuration.TokenCookieName)
