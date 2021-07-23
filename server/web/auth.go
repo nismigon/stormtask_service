@@ -1,6 +1,7 @@
 package web
 
 import (
+	"net/http"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
@@ -75,4 +76,17 @@ func (s *Server) ValidateAndExtractToken(token string) (*Claims, error) {
 		return nil, nil
 	}
 	return claims, nil
+}
+
+// VerifyToken is a middleware to check if the JWT Cookie is present
+// If
+func (s *Server) VerifyToken(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cookie := GetCookieByNameForRequest(r, s.Configuration.TokenCookieName)
+		if cookie == nil {
+			w.WriteHeader(http.StatusUnauthorized)
+			return
+		}
+		next.ServeHTTP(w, r)
+	})
 }

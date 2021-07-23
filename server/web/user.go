@@ -33,7 +33,7 @@ func (s *Server) Authenticate(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.SetCookie(rw, &http.Cookie{
-		Name:  "Token",
+		Name:  s.Configuration.TokenCookieName,
 		Value: token,
 	})
 	rw.WriteHeader(http.StatusOK)
@@ -64,14 +64,7 @@ func (s *Server) AddUser(rw http.ResponseWriter, r *http.Request) {
 // If the token is not found or if the token is invalid, this returns a 401 HTTP code (Unauthorized)
 // If the user is not deleted from the database, this returns a 500 HTTP code (Internal Server Error)
 func (s *Server) DeleteUser(w http.ResponseWriter, r *http.Request) {
-	var cookie *http.Cookie
-	cookies := r.Cookies()
-	// Search the cookie containing the token
-	for _, tmpCookie := range cookies {
-		if tmpCookie.Name == "Token" && tmpCookie.Value != "" {
-			cookie = tmpCookie
-		}
-	}
+	cookie := GetCookieByNameForRequest(r, s.Configuration.TokenCookieName)
 	if cookie == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return

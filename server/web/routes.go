@@ -1,7 +1,12 @@
 package web
 
+import "net/http"
+
 func (s *Server) InitRoutes() {
-	s.Router.HandleFunc("/authenticate", s.Authenticate).Methods("POST")
-	s.Router.HandleFunc("/user", s.AddUser).Methods("POST")
-	s.Router.HandleFunc("/user", s.DeleteUser).Methods("DELETE")
+	handlerAuthenticate := http.HandlerFunc(s.Authenticate)
+	handlerAddUser := http.HandlerFunc(s.AddUser)
+	handlerDeleteUser := http.HandlerFunc(s.DeleteUser)
+	s.Router.Handle("/authenticate", handlerAuthenticate).Methods("POST")
+	s.Router.Handle("/user", handlerAddUser).Methods("POST")
+	s.Router.Handle("/user", s.VerifyToken(handlerDeleteUser)).Methods("DELETE")
 }

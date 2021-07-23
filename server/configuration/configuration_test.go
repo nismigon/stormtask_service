@@ -155,6 +155,36 @@ func TestParseEnvironmentDatabaseName(t *testing.T) {
 	}
 }
 
+func TestParseEnvironmentTokenCookieName(t *testing.T) {
+	conf, err := Parse("../configuration.json")
+	if err != nil {
+		t.Errorf("Failed to find the configuration.json file")
+	}
+	tokenCookieName, set := os.LookupEnv("TOKEN_COOKIE_NAME")
+	if !set {
+		err := os.Setenv("TOKEN_COOKIE_NAME", "toto")
+		if err != nil {
+			t.Errorf("Failed to set environment variable DATABASE_URL")
+		}
+		conf, err = Parse("../configuration.json")
+		if err != nil {
+			t.Errorf("Failed to find the configuration.json file")
+		}
+		if conf.TokenCookieName != "toto" {
+			t.Errorf("Failed to get the environment variable DATABASE_URL")
+		}
+		err = os.Unsetenv("TOKEN_COOKIE_NAME")
+		if err != nil {
+			t.Errorf("Failed to unset the environment variable DATABASE_URL")
+		}
+	} else {
+		if conf.TokenCookieName != tokenCookieName {
+			t.Errorf("Failed to get the environment variable JWT_SECRET_KEY\n\tExpected : %q\n\tGiven : %q",
+				tokenCookieName, conf.TokenCookieName)
+		}
+	}
+}
+
 func TestWrongPath(t *testing.T) {
 	_, err := Parse("toto.json")
 	if err == nil {
