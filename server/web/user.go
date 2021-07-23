@@ -84,7 +84,7 @@ func (s *Server) DeleteUser(w http.ResponseWriter, r *http.Request) {
 
 // ModifyUser modify the user into the database
 // In the nominal case, this function returns a 200 HTTP code (OK)
-// If the cookie is not found or if the token is not valid, this function retuns a 401 HTTP code (Unauthorized)
+// If the cookie is not found or if the token is not valid, this function returns a 401 HTTP code (Unauthorized)
 // If the modification of the user (without email) failed, this function returns a 500 HTTP code (Internal Server Error)
 // If the modification of the user (email) failed, this function returns a 409 HTTP code (Conflict)
 func (s *Server) ModifyUser(w http.ResponseWriter, r *http.Request) {
