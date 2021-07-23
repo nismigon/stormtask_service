@@ -54,8 +54,8 @@ func BeforeGroupTest() (*Server, *httptest.Server, int, int, *http.Cookie, error
 
 func AfterGroupTest(server *Server, httpServer *httptest.Server, groupID int) {
 	group, _ := server.Database.GetGroupByID(groupID)
-	server.Database.DeleteGroup(group.ID)
-	server.Database.DeleteUser(group.UserID)
+	_ = server.Database.DeleteGroup(group.ID)
+	_ = server.Database.DeleteUser(group.UserID)
 	httpServer.Close()
 	_ = server.Close()
 }
