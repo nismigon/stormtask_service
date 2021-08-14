@@ -8,7 +8,7 @@ server-go-lint:
   services:
   - docker:dind
   script:
-    - docker-compose -f docker/compose_lint.yaml -p stormtask_compose_lint up -d --exit-code-from lint
+    - docker-compose -f docker/compose_lint.yaml -p stormtask_compose_lint up --exit-code-from lint
 
 server-go-test:
   stage: test
