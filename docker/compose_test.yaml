@@ -19,5 +19,5 @@ services:
       DATABASE_USER: stormtask_user
       DATABASE_PASSWORD: vV4UbidqXzCj62pxiSsC8gnQTtNfcm
       DATABASE_NAME: stormtask_database
-      JWT_SECRET_KEY: SgVkYp3s6v9y$B&E)H@McQfThWmZq4t7
+      JWT_SECRET_KEY: SgVkYp3s6v9y*B&E)H@McQfThWmZq4t7
       TOKEN_COOKIE_NAME: JWT_token

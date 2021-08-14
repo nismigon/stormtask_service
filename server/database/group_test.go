@@ -254,3 +254,54 @@ func TestUniqueGroupNameByUser(t *testing.T) {
 	}
 	AfterGroupTest(handler, userID)
 }
+
+func TestGetGroupsByUserIDRight(t *testing.T) {
+	handler, userID, err := BeforeGroupTest()
+	if err != nil {
+		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
+	}
+	group1, err := handler.AddGroup(userID, "TestGroup1")
+	if err != nil {
+		t.Errorf("Failed to add the group : " + err.Error())
+	}
+	group2, err := handler.AddGroup(userID, "TestGroup2")
+	if err != nil {
+		t.Errorf("Failed to add the group : " + err.Error())
+	}
+	groups, err := handler.GetGroupsByUserID(userID)
+	if err != nil {
+		t.Errorf("Failed to get groups by user id : " + err.Error())
+	}
+	if len(*groups) != 2 {
+		t.Errorf("Failed to get groups by user id : The table returned should contain 2 elements")
+	}
+	for _, group := range *groups {
+		if group != *group1 && group != *group2 {
+			t.Errorf("Failed to get groups by user id : Unrocognized group")
+		}
+	}
+	err = handler.DeleteGroup(group1.ID)
+	if err != nil {
+		t.Errorf("Failed to delete group : " + err.Error())
+	}
+	err = handler.DeleteGroup(group2.ID)
+	if err != nil {
+		t.Errorf("Failed to delete group : " + err.Error())
+	}
+	AfterGroupTest(handler, userID)
+}
+
+func TestGetGroupsByUserIDWrongUserID(t *testing.T) {
+	handler, userID, err := BeforeGroupTest()
+	if err != nil {
+		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
+	}
+	groups, err := handler.GetGroupsByUserID(-1)
+	if err != nil {
+		t.Errorf("Failed to get groups by user id : " + err.Error())
+	}
+	if len(*groups) != 0 {
+		t.Errorf("Failed to get groups by user id : The len of the slice should be equal to 0")
+	}
+	AfterGroupTest(handler, userID)
+}

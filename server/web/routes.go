@@ -8,9 +8,11 @@ func (s *Server) InitRoutes() {
 	handlerDeleteUser := http.HandlerFunc(s.DeleteUser)
 	handlerModifyUser := http.HandlerFunc(s.ModifyUser)
 	handlerAddGroup := http.HandlerFunc(s.AddGroup)
+	handlerGetGroups := http.HandlerFunc(s.GetGroupsByUserID)
 	s.Router.Handle("/authenticate", handlerAuthenticate).Methods("POST")
 	s.Router.Handle("/user", handlerAddUser).Methods("POST")
 	s.Router.Handle("/user", s.VerifyToken(handlerDeleteUser)).Methods("DELETE")
 	s.Router.Handle("/user", s.VerifyToken(handlerModifyUser)).Methods("PUT")
 	s.Router.Handle("/group", s.VerifyToken(handlerAddGroup)).Methods("POST")
+	s.Router.Handle("/group", s.VerifyToken(handlerGetGroups)).Methods("GET")
 }

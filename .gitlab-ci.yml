@@ -4,12 +4,11 @@ stages:
 
 server-go-lint:
   stage: lint
-  image: docker
+  image: docker/compose:latest
   services:
   - docker:dind
   script:
-    - docker build -t stormtask_lint_image -f Dockerfile.server.lint .
-    - docker run stormtask_lint_image
+    - docker-compose -f docker/compose_lint.yaml -p stormtask_compose_lint up -d --exit-code-from lint
 
 server-go-test:
   stage: test
@@ -17,5 +16,5 @@ server-go-test:
   services:
   - docker:dind
   script:
-  - docker build -t stormtask_test_image -f Dockerfile.server.test .
+  - docker build -t stormtask_test_image -f Dockerfile .
   - docker-compose -f docker/compose_test.yaml -p stormtask_compose_test up --exit-code-from test

@@ -5,8 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"naleakan/stormtask/configuration"
+	"naleakan/stormtask/database"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
@@ -65,7 +67,7 @@ func TestAddGroupRight(t *testing.T) {
 	if err != nil {
 		t.Errorf("Failed to initialize group test, please other test to know what happens : " + err.Error())
 	}
-	groupBody := AddGroupBody{
+	groupBody := GroupNameBody{
 		Name: "MyNameForANewGroup",
 	}
 	groupJSON, err := json.Marshal(groupBody)
@@ -100,6 +102,69 @@ func TestAddGroupRight(t *testing.T) {
 	err = server.Database.DeleteGroup(group.ID)
 	if err != nil {
 		t.Errorf("Failedr to delete the group : " + err.Error())
+	}
+	AfterGroupTest(server, httpServer, groupID)
+}
+
+func TestAddGroupWrongName(t *testing.T) {
+	server, httpServer, _, groupID, cookie, err := BeforeGroupTest()
+	if err != nil {
+		t.Errorf("Failed to initialize group test, please other test to know what happens : " + err.Error())
+	}
+	groupBody := GroupNameBody{
+		Name: "TestGroup",
+	}
+	groupJSON, err := json.Marshal(groupBody)
+	if err != nil {
+		t.Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(groupJSON)
+	req, err := http.NewRequest("POST", httpServer.URL+"/group", body)
+	if err != nil {
+		t.Errorf("Failed to create a post request for group : " + err.Error())
+	}
+	if cookie != nil {
+		req.Header.Set("Cookie", cookie.Name+"="+cookie.Value)
+	}
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to get the response for the post route : " + err.Error())
+	}
+	if response.StatusCode != http.StatusUnauthorized {
+		t.Errorf("Failed to add the group : Add a group with the same name should return an Unauthorized HTTP code")
+	}
+	AfterGroupTest(server, httpServer, groupID)
+}
+
+func TestGetGroupsByUserIDRight(t *testing.T) {
+	server, httpServer, _, groupID, cookie, err := BeforeGroupTest()
+	if err != nil {
+		t.Errorf("Failed to initialize group test, please other test to know what happens : " + err.Error())
+	}
+	req, err := http.NewRequest("GET", httpServer.URL+"/group", nil)
+	if err != nil {
+		t.Errorf("Failed to create a post request for group : " + err.Error())
+	}
+	if cookie != nil {
+		req.Header.Set("Cookie", cookie.Name+"="+cookie.Value)
+	}
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		t.Errorf("Failed to get the response for the get route : " + err.Error())
+	}
+	if response.StatusCode != http.StatusOK {
+		t.Error("Failed to get the differents groups : return an error code " +
+			strconv.FormatInt(int64(response.StatusCode), 10))
+	}
+	var groups []database.GroupInformation
+	err = json.NewDecoder(response.Body).Decode(&groups)
+	if err != nil {
+		t.Errorf("Failed to decode the body of the response with : " + err.Error())
+	}
+	if len(groups) != 1 {
+		t.Errorf("Failed to get the correct result : the array of group should contain 1 element")
 	}
 	AfterGroupTest(server, httpServer, groupID)
 }

@@ -1,5 +1,11 @@
 version: "3.9"
 services:
   lint:
-    image: stormtask_lint_image
+    image: golangci/golangci-lint:v1.41.1
     container_name: stormtask_lint_container
+    volumes:
+      - ../server:/app
+    working_dir: /app
+    entrypoint:
+      - "golangci-lint"
+      - "run"

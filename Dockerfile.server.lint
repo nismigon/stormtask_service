@@ -1,6 +1,0 @@
-FROM golangci/golangci-lint:v1.41.1
-WORKDIR /app
-COPY ./scripts/wait-for-it.sh .
-RUN chmod +x wait-for-it.sh
-COPY ./server .
-CMD ["golangci-lint", "run"]

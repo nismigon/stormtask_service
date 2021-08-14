@@ -67,6 +67,31 @@ func (db *DBHandler) GetGroupByUserAndName(userID int, name string) (*GroupInfor
 	return nil, nil
 }
 
+// GetGroupsByUserID get all the groups of a selected user
+// In the nominal case, this returns a list of groups
+// If an error occurred during the process, this returns an error
+func (db *DBHandler) GetGroupsByUserID(userID int) (*[]GroupInformation, error) {
+	getGroupsRequest := `SELECT id_group, name, id_user FROM stormtask_group WHERE id_user=?`
+	statement, err := db.Handler.Prepare(getGroupsRequest)
+	if err != nil {
+		return nil, err
+	}
+	rows, err := statement.Query(userID)
+	if err != nil {
+		return nil, err
+	}
+	var groups []GroupInformation
+	for rows.Next() {
+		var group GroupInformation
+		err = rows.Scan(&group.ID, &group.Name, &group.UserID)
+		if err != nil {
+			return nil, err
+		}
+		groups = append(groups, group)
+	}
+	return &groups, nil
+}
+
 // AddGroup add a group to the database
 // If the group have been added, this returns a GroupInformation
 // If an error occurred, this returns an errror

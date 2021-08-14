@@ -1,3 +1,1 @@
-cd ..
-docker build -t stormtask_lint_image -f Dockerfile.server.lint .
-docker run --rm stormtask_lint_image
+docker-compose -f docker/compose_lint.yaml -p stormtask_compose_lint up -d
