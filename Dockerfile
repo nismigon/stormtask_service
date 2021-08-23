@@ -1,7 +1,8 @@
-FROM golang:1.16
+FROM golang:alpine
+RUN apk add --no-cache --upgrade bash build-base
 WORKDIR /app
-COPY ./scripts/wait-for-it.sh .
-RUN chmod +x wait-for-it.sh
+COPY ./scripts/wait-for.sh .
+RUN chmod +x wait-for.sh
 COPY ./server .
-RUN go install
+RUN go get ./...
 CMD ["go", "test", "./...", "-cover"]
