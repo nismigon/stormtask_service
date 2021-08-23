@@ -6,7 +6,7 @@ import (
 )
 
 func TestParseEnvironmentDatabaseURL(t *testing.T) {
-	conf, err := Parse("../configuration.json")
+	conf, err := Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to find the configuration.json file")
 	}
@@ -16,7 +16,7 @@ func TestParseEnvironmentDatabaseURL(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to set environment variable DATABASE_URL")
 		}
-		conf, err = Parse("../configuration.json")
+		conf, err = Parse("../../configuration.json")
 		if err != nil {
 			t.Errorf("Failed to find the configuration.json file")
 		}
@@ -36,7 +36,7 @@ func TestParseEnvironmentDatabaseURL(t *testing.T) {
 }
 
 func TestParseEnvironmentDatabaseUser(t *testing.T) {
-	conf, err := Parse("../configuration.json")
+	conf, err := Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to find the configuration.json file")
 	}
@@ -46,7 +46,7 @@ func TestParseEnvironmentDatabaseUser(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to set environment variable DATABASE_URL")
 		}
-		conf, err = Parse("../configuration.json")
+		conf, err = Parse("../../configuration.json")
 		if err != nil {
 			t.Errorf("Failed to find the configuration.json file")
 		}
@@ -66,7 +66,7 @@ func TestParseEnvironmentDatabaseUser(t *testing.T) {
 }
 
 func TestParseEnvironmentDatabasePassword(t *testing.T) {
-	conf, err := Parse("../configuration.json")
+	conf, err := Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to find the configuration.json file")
 	}
@@ -76,7 +76,7 @@ func TestParseEnvironmentDatabasePassword(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to set environment variable DATABASE_URL")
 		}
-		conf, err = Parse("../configuration.json")
+		conf, err = Parse("../../configuration.json")
 		if err != nil {
 			t.Errorf("Failed to find the configuration.json file")
 		}
@@ -96,7 +96,7 @@ func TestParseEnvironmentDatabasePassword(t *testing.T) {
 }
 
 func TestParseEnvironmentJWTSecretKey(t *testing.T) {
-	conf, err := Parse("../configuration.json")
+	conf, err := Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to find the configuration.json file")
 	}
@@ -106,7 +106,7 @@ func TestParseEnvironmentJWTSecretKey(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to set environment variable DATABASE_URL")
 		}
-		conf, err = Parse("../configuration.json")
+		conf, err = Parse("../../configuration.json")
 		if err != nil {
 			t.Errorf("Failed to find the configuration.json file")
 		}
@@ -126,7 +126,7 @@ func TestParseEnvironmentJWTSecretKey(t *testing.T) {
 }
 
 func TestParseEnvironmentDatabaseName(t *testing.T) {
-	conf, err := Parse("../configuration.json")
+	conf, err := Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to find the configuration.json file")
 	}
@@ -136,7 +136,7 @@ func TestParseEnvironmentDatabaseName(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to set environment variable DATABASE_URL")
 		}
-		conf, err = Parse("../configuration.json")
+		conf, err = Parse("../../configuration.json")
 		if err != nil {
 			t.Errorf("Failed to find the configuration.json file")
 		}
@@ -156,7 +156,7 @@ func TestParseEnvironmentDatabaseName(t *testing.T) {
 }
 
 func TestParseEnvironmentTokenCookieName(t *testing.T) {
-	conf, err := Parse("../configuration.json")
+	conf, err := Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to find the configuration.json file")
 	}
@@ -166,7 +166,7 @@ func TestParseEnvironmentTokenCookieName(t *testing.T) {
 		if err != nil {
 			t.Errorf("Failed to set environment variable DATABASE_URL")
 		}
-		conf, err = Parse("../configuration.json")
+		conf, err = Parse("../../configuration.json")
 		if err != nil {
 			t.Errorf("Failed to find the configuration.json file")
 		}

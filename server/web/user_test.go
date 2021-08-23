@@ -4,14 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"naleakan/stormtask/configuration"
 	"net/http"
 	"net/http/httptest"
+	"teissem/stormtask/server/configuration"
 	"testing"
 )
 
 func BeforeUserTest() (*Server, *httptest.Server, error) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		return nil, nil, err
 	}

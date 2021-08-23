@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"naleakan/stormtask/configuration"
+	"teissem/stormtask/server/configuration"
 )
 
 func main() {

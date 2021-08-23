@@ -1,12 +1,12 @@
 package database
 
 import (
-	"naleakan/stormtask/configuration"
+	"teissem/stormtask/server/configuration"
 	"testing"
 )
 
 func BeforeGroupTest() (*DBHandler, int, error) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		return nil, -1, err
 	}
@@ -297,6 +297,33 @@ func TestGetGroupsByUserIDWrongUserID(t *testing.T) {
 		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
 	}
 	groups, err := handler.GetGroupsByUserID(-1)
+	if err != nil {
+		t.Errorf("Failed to get groups by user id : " + err.Error())
+	}
+	if len(*groups) != 0 {
+		t.Errorf("Failed to get groups by user id : The len of the slice should be equal to 0")
+	}
+	AfterGroupTest(handler, userID)
+}
+
+func TestDeleteGroupsByUserRight(t *testing.T) {
+	handler, userID, err := BeforeGroupTest()
+	if err != nil {
+		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
+	}
+	_, err = handler.AddGroup(userID, "Test1")
+	if err != nil {
+		t.Errorf("Failed to add group, see others test to fine more explanation : " + err.Error())
+	}
+	_, err = handler.AddGroup(userID, "Test2")
+	if err != nil {
+		t.Errorf("Failed to add group, see others test to fine more explanation : " + err.Error())
+	}
+	err = handler.DeleteGroupsByUser(userID)
+	if err != nil {
+		t.Errorf("Failed to delete groups by user : " + err.Error())
+	}
+	groups, err := handler.GetGroupsByUserID(userID)
 	if err != nil {
 		t.Errorf("Failed to get groups by user id : " + err.Error())
 	}

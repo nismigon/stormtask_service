@@ -135,6 +135,9 @@ func (db *DBHandler) DeleteTask(id int) error {
 	return err
 }
 
+// DeleteTasksByGroup delete all the tasks of the selected group
+// In the nominal case, this return no error
+// If an error occurred during the request to the database, this returns the error generated
 func (db *DBHandler) DeleteTasksByGroup(id int) error {
 	deleteTasks := "DELETE FROM stormtask_task WHERE id_group = ?"
 	statement, err := db.Handler.Prepare(deleteTasks)

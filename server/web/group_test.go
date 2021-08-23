@@ -4,16 +4,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"naleakan/stormtask/configuration"
-	"naleakan/stormtask/database"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
+	"teissem/stormtask/server/configuration"
+	"teissem/stormtask/server/database"
 	"testing"
 )
 
 func BeforeGroupTest() (*Server, *httptest.Server, int, int, *http.Cookie, error) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		return nil, nil, -1, -1, nil, err
 	}

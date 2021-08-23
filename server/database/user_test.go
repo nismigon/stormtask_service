@@ -1,12 +1,12 @@
 package database
 
 import (
-	"naleakan/stormtask/configuration"
+	"teissem/stormtask/server/configuration"
 	"testing"
 )
 
 func TestAddAndDeleteUser(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 		t.FailNow()
@@ -41,7 +41,7 @@ func TestAddAndDeleteUser(t *testing.T) {
 }
 
 func TestAddTwiceSameEmail(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 		t.FailNow()
@@ -77,7 +77,7 @@ func TestAddTwiceSameEmail(t *testing.T) {
 }
 
 func TestGetUserByIDValid(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 		t.FailNow()
@@ -120,7 +120,7 @@ func TestGetUserByIDValid(t *testing.T) {
 }
 
 func TestAuthenticateRight(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 		t.FailNow()
@@ -151,7 +151,7 @@ func TestAuthenticateRight(t *testing.T) {
 }
 
 func TestAuthenticateWrongEmail(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 		t.FailNow()
@@ -182,7 +182,7 @@ func TestAuthenticateWrongEmail(t *testing.T) {
 }
 
 func TestAuthenticateWrongPassword(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 		t.FailNow()
@@ -213,7 +213,7 @@ func TestAuthenticateWrongPassword(t *testing.T) {
 }
 
 func TestModifyUserRight(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 		t.FailNow()

@@ -1,12 +1,12 @@
 package database
 
 import (
-	"naleakan/stormtask/configuration"
+	"teissem/stormtask/server/configuration"
 	"testing"
 )
 
 func BeforeTaskTest() (*DBHandler, int, error) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		return nil, -1, err
 	}

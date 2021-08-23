@@ -1,8 +1,8 @@
 package web
 
 import (
-	"naleakan/stormtask/configuration"
-	"naleakan/stormtask/database"
+	"teissem/stormtask/server/configuration"
+	"teissem/stormtask/server/database"
 
 	"github.com/gorilla/mux"
 )

@@ -126,6 +126,10 @@ func (db *DBHandler) ModifyGroup(groupID int, groupName string) (*GroupInformati
 // DeleteGroup deletes a group from the table
 // Return nil if the group has been deleted or an error if an error occurred
 func (db *DBHandler) DeleteGroup(groupID int) error {
+	err := db.DeleteTasksByGroup(groupID)
+	if err != nil {
+		return err
+	}
 	deleteRequest := `DELETE FROM stormtask_group WHERE id_group=?`
 	statement, err := db.Handler.Prepare(deleteRequest)
 	if err != nil {
@@ -133,4 +137,21 @@ func (db *DBHandler) DeleteGroup(groupID int) error {
 	}
 	_, err = statement.Exec(groupID)
 	return err
+}
+
+// DeleteGroupsByUser deletes all the groups of a selected user
+// In the nominal case, this returns a nil error
+// If an error occurred during the request to the database, this returns the error generated
+func (db *DBHandler) DeleteGroupsByUser(id int) error {
+	getGroups, err := db.GetGroupsByUserID(id)
+	if err != nil {
+		return err
+	}
+	for _, group := range *getGroups {
+		err = db.DeleteGroup(group.ID)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

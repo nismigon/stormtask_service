@@ -1,12 +1,12 @@
 package web
 
 import (
-	"naleakan/stormtask/configuration"
+	"teissem/stormtask/server/configuration"
 	"testing"
 )
 
 func TestGenerateTokenRight(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 	}
@@ -56,7 +56,7 @@ func TestGenerateTokenRight(t *testing.T) {
 }
 
 func TestGenerateTokenWrongEmail(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 	}
@@ -86,7 +86,7 @@ func TestGenerateTokenWrongEmail(t *testing.T) {
 }
 
 func TestGenerateTokenWrongPassword(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 	}

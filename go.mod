@@ -1,4 +1,4 @@
-module naleakan/stormtask
+module teissem/stormtask
 
 go 1.16
 

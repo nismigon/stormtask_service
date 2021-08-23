@@ -67,7 +67,7 @@ linters-settings:
   nestif:
     min-complexity: 7
   goimports:
-    local-prefixes: naleakan/stormtask/main
+    local-prefixes: teissem/stormtask/main
 
 linters:
   disable-all: true

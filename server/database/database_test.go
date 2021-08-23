@@ -1,12 +1,12 @@
 package database
 
 import (
-	"naleakan/stormtask/configuration"
+	"teissem/stormtask/server/configuration"
 	"testing"
 )
 
 func TestInitRight(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 	}
@@ -22,7 +22,7 @@ func TestInitRight(t *testing.T) {
 }
 
 func TestInitWrongURL(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 		t.FailNow()
@@ -39,7 +39,7 @@ func TestInitWrongURL(t *testing.T) {
 }
 
 func TestInitWrongUser(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 		t.FailNow()
@@ -56,7 +56,7 @@ func TestInitWrongUser(t *testing.T) {
 }
 
 func TestInitWrongPassword(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 	}
@@ -72,7 +72,7 @@ func TestInitWrongPassword(t *testing.T) {
 }
 
 func TestInitWrongName(t *testing.T) {
-	conf, err := configuration.Parse("../configuration.json")
+	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
 		t.Errorf("Failed to parse the configuration file : " + err.Error())
 	}
