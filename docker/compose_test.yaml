@@ -14,7 +14,7 @@ services:
     container_name: stormtask_test_container
     depends_on:
       - database
-    entrypoint: 
+    entrypoint:
       - "./wait-for.sh"
       - "stormtask_database_container:3306"
       - "--"
