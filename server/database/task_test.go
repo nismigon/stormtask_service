@@ -228,6 +228,33 @@ func TestGetTaskByGroupRight(t *testing.T) {
 	AfterTaskTest(handler, groupID)
 }
 
+func TestDBHandler_DeleteTasksByGroup(t *testing.T) {
+	handler, groupID, err := BeforeTaskTest()
+	if err != nil {
+		t.Errorf("Failed to initialize the task test, please see other test to see what happens : " + err.Error())
+	}
+	_, err = handler.AddTask("Test1", "Description", false, false, groupID)
+	if err != nil {
+		t.Errorf("Failed to add task : " + err.Error())
+	}
+	_, err = handler.AddTask("Test2", "Description", false, false, groupID)
+	if err != nil {
+		t.Errorf("Failed to add task : " + err.Error())
+	}
+	err = handler.DeleteTasksByGroup(groupID)
+	if err != nil {
+		t.Errorf("Failed to delete tasks of the group : " + err.Error())
+	}
+	tasks, err := handler.GetTasksByGroup(groupID)
+	if err != nil {
+		t.Errorf("Failed to get the tasks for a selected group : " + err.Error())
+	}
+	if len(*tasks) != 0 {
+		t.Errorf("Failed to delete the tasks : The returned array shoul be empty")
+	}
+	AfterTaskTest(handler, groupID)
+}
+
 func TestUniqueConstraintTask(t *testing.T) {
 	handler, groupID, err := BeforeTaskTest()
 	if err != nil {

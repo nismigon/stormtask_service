@@ -46,7 +46,7 @@ func (db *DBHandler) GetTaskByID(id int) (*TaskInformation, error) {
 	return &task, nil
 }
 
-// GetTaskByGroup get all the tasks of a selected group
+// GetTasksByGroup get all the tasks of a selected group
 // In the nominal case this return a TaskInformation table pointer
 // If an error occurred, this returns nil and the error
 // If the group is not found, this returns nil and nil
@@ -128,6 +128,16 @@ func (db *DBHandler) ModifyTask(id int,
 func (db *DBHandler) DeleteTask(id int) error {
 	deleteTask := "DELETE FROM stormtask_task WHERE id_task = ?"
 	statement, err := db.Handler.Prepare(deleteTask)
+	if err != nil {
+		return err
+	}
+	_, err = statement.Exec(id)
+	return err
+}
+
+func (db *DBHandler) DeleteTasksByGroup(id int) error {
+	deleteTasks := "DELETE FROM stormtask_task WHERE id_group = ?"
+	statement, err := db.Handler.Prepare(deleteTasks)
 	if err != nil {
 		return err
 	}
