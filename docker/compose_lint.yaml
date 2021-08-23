@@ -4,7 +4,7 @@ services:
     image: golangci/golangci-lint:latest
     container_name: stormtask_lint_container
     volumes:
-      - ../server:/app
+      - ../:/app
     working_dir: /app
     entrypoint:
       - "golangci-lint"
