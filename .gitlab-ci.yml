@@ -2,7 +2,7 @@ stages:
   - lint
   - test
 
-server-go-lint:
+lint-go:
   stage: lint
   image: docker/compose:latest
   services:
@@ -10,7 +10,15 @@ server-go-lint:
   script:
     - docker-compose -f docker/compose_lint.yaml -p stormtask_compose_lint up --exit-code-from lint
 
-server-go-test:
+lint-yaml:
+  stage: lint
+  image:
+    name: cytopia/yamllint
+    entrypoint: ["/bin/ash", "-c"]
+  script:
+    - yamllint -f colored .
+
+test-server:
   stage: test
   image: docker/compose:latest
   services:
