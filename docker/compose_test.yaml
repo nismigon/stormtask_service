@@ -1,3 +1,4 @@
+---
 version: "3.3"
 services:
   database:
@@ -13,7 +14,14 @@ services:
     container_name: stormtask_test_container
     depends_on:
       - database
-    entrypoint: ["./wait-for.sh", "stormtask_database_container:3306", "--", "go", "test", "./server/...", "-cover"] 
+    entrypoint: 
+      - "./wait-for.sh"
+      - "stormtask_database_container:3306"
+      - "--"
+      - "go"
+      - "test"
+      - "./server/..."
+      - "-cover"
     environment:
       DATABASE_URL: stormtask_database_container
       DATABASE_USER: stormtask_user

@@ -1,3 +1,4 @@
+---
 stages:
   - lint
   - test
@@ -6,9 +7,15 @@ lint-go:
   stage: lint
   image: docker/compose:latest
   services:
-  - docker:dind
+    - docker:dind
   script:
-    - docker-compose -f docker/compose_lint.yaml -p stormtask_compose_lint up --exit-code-from lint
+    - docker-compose
+    - "-f"
+    - "docker/compose_lint.yaml"
+    - "-p"
+    - "stormtask_compose_lint"
+    - "up"
+    - "--exit-code-from lint"
 
 lint-yaml:
   stage: lint
@@ -16,13 +23,30 @@ lint-yaml:
     name: cytopia/yamllint
     entrypoint: ["/bin/ash", "-c"]
   script:
-    - yamllint -f colored .
+    - "yamllint"
+    - "-f"
+    - "colored"
+    - "."
 
 test-server:
   stage: test
   image: docker/compose:latest
   services:
-  - docker:dind
+   - docker:dind
   script:
-  - docker build -t stormtask_test_image -f Dockerfile .
-  - docker-compose -f docker/compose_test.yaml -p stormtask_compose_test up --exit-code-from test
+    - "docker"
+    - "build"
+    - "-t"
+    - "stormtask_test_image"
+    - "-f"
+    - "Dockerfile"
+    - "."
+    - "--"
+    - "docker-compose"
+    - "-f"
+    - "docker/compose_test.yaml"
+    - "-p"
+    - "stormtask_compose_test"
+    - "up"
+    - "--exit-code-from"
+    - "test"
