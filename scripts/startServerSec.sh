@@ -1,0 +1,1 @@
+docker-compose -f docker/compose_sec.yaml -p stormtask_compose_sec up -d

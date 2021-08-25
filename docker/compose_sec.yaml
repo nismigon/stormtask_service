@@ -1,0 +1,11 @@
+---
+version: "3.4"
+services:
+  sec:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile.sec
+    container_name: stormtask_sec_container
+    volumes:
+      - ../:/app
+    working_dir: /app

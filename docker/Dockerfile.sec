@@ -1,0 +1,7 @@
+FROM golang:alpine
+RUN apk add --no-cache --upgrade bash build-base
+WORKDIR /app
+COPY server ./server
+COPY go.mod go.sum configuration.json .golangci.yml main.go ./
+RUN go get -u github.com/securego/gosec/v2/cmd/gosec
+CMD ["gosec", "./..."]

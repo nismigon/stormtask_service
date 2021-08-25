@@ -1,6 +1,7 @@
 ---
 stages:
   - lint
+  - security
   - test
 
 lint-go:
@@ -19,6 +20,15 @@ lint-yaml:
     entrypoint: ["/bin/ash", "-c"]
   script:
     - yamllint -f colored .
+
+security-check:
+  stage: security
+  image: docker/compose:latest
+  services:
+    - docker:dind
+  script:
+    - docker-compose -f docker/compose_sec.yaml -p
+      stormtask_compose_sec up --exit-code-from sec
 
 test-server:
   stage: test

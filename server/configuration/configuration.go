@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 )
 
 type ConfStruct struct {
@@ -21,7 +22,7 @@ type ConfStruct struct {
 // This function can also return an error if it is not possible to open the file, to read the file
 // or to unmarshal the JSON content
 func Parse(path string) (*ConfStruct, error) {
-	jsonFile, err := os.Open(path)
+	jsonFile, err := os.Open(filepath.Clean(path))
 	if err != nil {
 		return nil, err
 	}
