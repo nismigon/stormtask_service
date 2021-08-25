@@ -248,3 +248,30 @@ func TestModifyUserRight(t *testing.T) {
 		t.Errorf("Failed to delete the user : " + err.Error())
 	}
 }
+
+func TestDeleteUserWithGroups(t *testing.T) {
+	conf, err := configuration.Parse("../../configuration.json")
+	if err != nil {
+		t.Errorf("Failed to parse the configuration file : " + err.Error())
+		t.FailNow()
+	}
+	handler, err := Init(conf.DatabaseURL, conf.DatabaseUser, conf.DatabasePassword, conf.DatabaseName)
+	if err != nil {
+		t.Errorf("Failed to open the database : " + err.Error())
+		t.FailNow()
+	}
+	defer handler.Close()
+	tmpUser, err := handler.AddUser("test@test.com", "Test", "Test", false)
+	if err != nil {
+		t.Errorf("Failed to add the user into the database : " + err.Error())
+		t.FailNow()
+	}
+	_, err = handler.AddGroup(tmpUser.ID, "GroupTest")
+	if err != nil {
+		t.Errorf("Failed to add the group into the database : " + err.Error())
+	}
+	err = handler.DeleteUser(tmpUser.ID)
+	if err != nil {
+		t.Errorf("Failed to delete the user : " + err.Error())
+	}
+}

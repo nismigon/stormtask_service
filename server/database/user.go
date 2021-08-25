@@ -121,6 +121,10 @@ func (db *DBHandler) ModifyUser(id int, email, name, password string) (*UserInfo
 // DeleteUser delete a user of the table
 // Return nil if the user have been deleted or err if an error occur'ed
 func (db *DBHandler) DeleteUser(id int) error {
+	err := db.DeleteGroupsByUser(id)
+	if err != nil {
+		return err
+	}
 	deleteUserRequest := `DELETE FROM stormtask_user WHERE id_user=?`
 	statement, err := db.Handler.Prepare(deleteUserRequest)
 	if err != nil {
