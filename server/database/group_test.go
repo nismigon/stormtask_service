@@ -10,7 +10,7 @@ import (
 type GroupTestSuite struct {
 	suite.Suite
 	Handler *DBHandler
-	UserId  int
+	UserID  int
 	Group   *GroupInformation
 }
 
@@ -28,29 +28,28 @@ func (suite *GroupTestSuite) SetupTest() {
 	if err != nil {
 		suite.T().Errorf("Failed to add the user into the database : " + err.Error())
 	}
-	suite.UserId = user.ID
-	group, err := suite.Handler.AddGroup(suite.UserId, "TestGroup")
+	suite.UserID = user.ID
+	group, err := suite.Handler.AddGroup(suite.UserID, "TestGroup")
 	if err != nil {
 		suite.T().Errorf("Failed to add group : " + err.Error())
 	}
 	suite.Group = group
-
 }
 
 func (suite *GroupTestSuite) TearDownTest() {
-	_ = suite.Handler.DeleteUser(suite.UserId)
+	_ = suite.Handler.DeleteUser(suite.UserID)
 	_ = suite.Handler.Close()
 }
 
 func (suite *GroupTestSuite) TestAddAndDeleteGroup() {
-	group, err := suite.Handler.AddGroup(suite.UserId, "TestGroupUnique")
+	group, err := suite.Handler.AddGroup(suite.UserID, "TestGroupUnique")
 	if err != nil {
 		suite.T().Errorf("Failed to add group : " + err.Error())
 	}
 	if group.Name != "TestGroupUnique" {
 		suite.T().Errorf("Failed to affect the name of the group")
 	}
-	if group.UserID != suite.UserId {
+	if group.UserID != suite.UserID {
 		suite.T().Errorf("Failed to affect the user id of the group")
 	}
 	err = suite.Handler.DeleteGroup(group.ID)
@@ -166,15 +165,15 @@ func (suite *GroupTestSuite) TestUniqueGroupNameByUser() {
 }
 
 func (suite *GroupTestSuite) TestGetGroupsByUserIDRight() {
-	group1, err := suite.Handler.AddGroup(suite.UserId, "TestGroup1")
+	group1, err := suite.Handler.AddGroup(suite.UserID, "TestGroup1")
 	if err != nil {
 		suite.T().Errorf("Failed to add the group : " + err.Error())
 	}
-	group2, err := suite.Handler.AddGroup(suite.UserId, "TestGroup2")
+	group2, err := suite.Handler.AddGroup(suite.UserID, "TestGroup2")
 	if err != nil {
 		suite.T().Errorf("Failed to add the group : " + err.Error())
 	}
-	groups, err := suite.Handler.GetGroupsByUserID(suite.UserId)
+	groups, err := suite.Handler.GetGroupsByUserID(suite.UserID)
 	if err != nil {
 		suite.T().Errorf("Failed to get groups by user id : " + err.Error())
 	}
@@ -199,19 +198,19 @@ func (suite *GroupTestSuite) TestGetGroupsByUserIDWrongUserID() {
 }
 
 func (suite *GroupTestSuite) TestDeleteGroupsByUserRight() {
-	_, err := suite.Handler.AddGroup(suite.UserId, "Test1")
+	_, err := suite.Handler.AddGroup(suite.UserID, "Test1")
 	if err != nil {
 		suite.T().Errorf("Failed to add group, see others test to fine more explanation : " + err.Error())
 	}
-	_, err = suite.Handler.AddGroup(suite.UserId, "Test2")
+	_, err = suite.Handler.AddGroup(suite.UserID, "Test2")
 	if err != nil {
 		suite.T().Errorf("Failed to add group, see others test to fine more explanation : " + err.Error())
 	}
-	err = suite.Handler.DeleteGroupsByUser(suite.UserId)
+	err = suite.Handler.DeleteGroupsByUser(suite.UserID)
 	if err != nil {
 		suite.T().Errorf("Failed to delete groups by user : " + err.Error())
 	}
-	groups, err := suite.Handler.GetGroupsByUserID(suite.UserId)
+	groups, err := suite.Handler.GetGroupsByUserID(suite.UserID)
 	if err != nil {
 		suite.T().Errorf("Failed to get groups by user id : " + err.Error())
 	}
