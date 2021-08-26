@@ -3,332 +3,223 @@ package database
 import (
 	"teissem/stormtask/server/configuration"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
-func BeforeGroupTest() (*DBHandler, int, error) {
+type GroupTestSuite struct {
+	suite.Suite
+	Handler *DBHandler
+	UserId  int
+	Group   *GroupInformation
+}
+
+func (suite *GroupTestSuite) SetupTest() {
 	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
-		return nil, -1, err
+		suite.T().Errorf("Failed to parse the configuration file : " + err.Error())
 	}
 	handler, err := Init(conf.DatabaseURL, conf.DatabaseUser, conf.DatabasePassword, conf.DatabaseName)
 	if err != nil {
-		return nil, -1, err
+		suite.T().Errorf("Failed to initialize the connection with the database : " + err.Error())
 	}
+	suite.Handler = handler
 	user, err := handler.AddUser("test@test.com", "Test", "Test", false)
 	if err != nil {
-		return nil, -1, err
+		suite.T().Errorf("Failed to add the user into the database : " + err.Error())
 	}
-	return handler, user.ID, nil
+	suite.UserId = user.ID
+	group, err := suite.Handler.AddGroup(suite.UserId, "TestGroup")
+	if err != nil {
+		suite.T().Errorf("Failed to add group : " + err.Error())
+	}
+	suite.Group = group
+
 }
 
-func AfterGroupTest(handler *DBHandler, id int) {
-	_ = handler.DeleteUser(id)
-	_ = handler.Close()
+func (suite *GroupTestSuite) TearDownTest() {
+	_ = suite.Handler.DeleteUser(suite.UserId)
+	_ = suite.Handler.Close()
 }
 
-func TestAddAndDeleteGroup(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
+func (suite *GroupTestSuite) TestAddAndDeleteGroup() {
+	group, err := suite.Handler.AddGroup(suite.UserId, "TestGroupUnique")
 	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
+		suite.T().Errorf("Failed to add group : " + err.Error())
 	}
-	group, err := handler.AddGroup(userID, "TestGroup")
+	if group.Name != "TestGroupUnique" {
+		suite.T().Errorf("Failed to affect the name of the group")
+	}
+	if group.UserID != suite.UserId {
+		suite.T().Errorf("Failed to affect the user id of the group")
+	}
+	err = suite.Handler.DeleteGroup(group.ID)
 	if err != nil {
-		t.Errorf("Failed to add group : " + err.Error())
+		suite.T().Errorf("Failed to delete the group : " + err.Error())
 	}
-	if group.Name != "TestGroup" {
-		t.Errorf("Failed to affect the name of the group")
-	}
-	if group.UserID != userID {
-		t.Errorf("Failed to affect the user id of the group")
-	}
-	err = handler.DeleteGroup(group.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the group : " + err.Error())
-	}
-	AfterGroupTest(handler, userID)
 }
 
-func TestAddGroupWrongUserID(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
-	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
-	}
-	_, err = handler.AddGroup(-1, "TestGroup")
+func (suite *GroupTestSuite) TestAddGroupWrongUserID() {
+	_, err := suite.Handler.AddGroup(-1, "TestGroup")
 	if err == nil {
-		t.Errorf("Failed to add wrong user id : use a wrong user id didn't return an error")
+		suite.T().Errorf("Failed to add wrong user id : use a wrong user id didn't return an error")
 	}
-	AfterGroupTest(handler, userID)
 }
 
-func TestModifyGroupRight(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
+func (suite *GroupTestSuite) TestModifyGroupRight() {
+	group, err := suite.Handler.ModifyGroup(suite.Group.ID, "Toto")
 	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
+		suite.T().Errorf("Failed to modify the group : " + err.Error())
 	}
-	tmpGroup, err := handler.AddGroup(userID, "TestGroup")
-	if err != nil {
-		t.Errorf("Failed to add group : " + err.Error())
-	}
-	group, err := handler.ModifyGroup(tmpGroup.ID, "Toto")
-	if err != nil {
-		t.Errorf("Failed to modify the group : " + err.Error())
-	}
-	if group.ID != tmpGroup.ID {
-		t.Errorf("Failed to modify group name, the group modified is different of the group provided")
+	if group.ID != suite.Group.ID {
+		suite.T().Errorf("Failed to modify group name, the group modified is different of the group provided")
 	}
 	if group.Name != "Toto" {
-		t.Errorf("Failed to modify group, the group name has not been modified correctly")
+		suite.T().Errorf("Failed to modify group, the group name has not been modified correctly")
 	}
-	if group.UserID != tmpGroup.UserID {
-		t.Errorf("Failed to modify group, the group user ID have changed")
+	if group.UserID != suite.Group.UserID {
+		suite.T().Errorf("Failed to modify group, the group user ID have changed")
 	}
-	err = handler.DeleteGroup(group.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the group : " + err.Error())
-	}
-	AfterGroupTest(handler, userID)
 }
 
-func TestModifyGroupFalseID(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
+func (suite *GroupTestSuite) TestModifyGroupFalseID() {
+	group, err := suite.Handler.ModifyGroup(-1, "Toto")
 	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
-	}
-	tmpGroup, err := handler.AddGroup(userID, "TestGroup")
-	if err != nil {
-		t.Errorf("Failed to add group : " + err.Error())
-	}
-	group, err := handler.ModifyGroup(-1, "Toto")
-	if err != nil {
-		t.Errorf("Failed to modify group : " + err.Error())
+		suite.T().Errorf("Failed to modify group : " + err.Error())
 	}
 	if group != nil {
-		t.Errorf("Failed to modify group : A wrong ID returns a group")
+		suite.T().Errorf("Failed to modify group : A wrong ID returns a group")
 	}
-	err = handler.DeleteGroup(tmpGroup.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the group : " + err.Error())
-	}
-	AfterGroupTest(handler, userID)
 }
 
-func TestGetGroupByIDRight(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
+func (suite *GroupTestSuite) TestGetGroupByIDRight() {
+	group, err := suite.Handler.GetGroupByID(suite.Group.ID)
 	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
+		suite.T().Errorf("Failed to get group by its ID : " + err.Error())
 	}
-	tmpGroup, err := handler.AddGroup(userID, "TestGroup")
-	if err != nil {
-		t.Errorf("Failed to add group : " + err.Error())
+	if group.ID != suite.Group.ID {
+		suite.T().Errorf("Failed to get group by its ID : The id of the group have changed")
 	}
-	group, err := handler.GetGroupByID(tmpGroup.ID)
-	if err != nil {
-		t.Errorf("Failed to get group by its ID : " + err.Error())
+	if group.Name != suite.Group.Name {
+		suite.T().Errorf("Failed to get group by its ID : The name of the group have changed")
 	}
-	if group.ID != tmpGroup.ID {
-		t.Errorf("Failed to get group by its ID : The id of the group have changed")
+	if group.UserID != suite.Group.UserID {
+		suite.T().Errorf("Failed to get group by its ID : The user owner of the group have changed")
 	}
-	if group.Name != tmpGroup.Name {
-		t.Errorf("Failed to get group by its ID : The name of the group have changed")
-	}
-	if group.UserID != tmpGroup.UserID {
-		t.Errorf("Failed to get group by its ID : The user owner of the group have changed")
-	}
-	err = handler.DeleteGroup(tmpGroup.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the group : " + err.Error())
-	}
-	AfterGroupTest(handler, userID)
 }
 
-func TestGetGroupByIDWrong(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
+func (suite *GroupTestSuite) TestGetGroupByIDWrong() {
+	group, err := suite.Handler.GetGroupByID(-1)
 	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
-	}
-	group, err := handler.GetGroupByID(-1)
-	if err != nil {
-		t.Errorf("Failed to get group by its ID : " + err.Error())
+		suite.T().Errorf("Failed to get group by its ID : " + err.Error())
 	}
 	if group != nil {
-		t.Errorf("Failed to get group by its ID : A wrong id returns a result")
+		suite.T().Errorf("Failed to get group by its ID : A wrong id returns a result")
 	}
-	AfterGroupTest(handler, userID)
 }
 
-func TestGetGroupByNameUserRight(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
+func (suite *GroupTestSuite) TestGetGroupByNameUserRight() {
+	group, err := suite.Handler.GetGroupByUserAndName(suite.Group.UserID, suite.Group.Name)
 	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
+		suite.T().Errorf("Failed to get group by its user and its name : " + err.Error())
 	}
-	tmpGroup, err := handler.AddGroup(userID, "TestGroup")
-	if err != nil {
-		t.Errorf("Failed to add group : " + err.Error())
+	if group.ID != suite.Group.ID {
+		suite.T().Errorf("Failed to get group by its user and its name : The id of the group have changed")
 	}
-	group, err := handler.GetGroupByUserAndName(tmpGroup.UserID, tmpGroup.Name)
-	if err != nil {
-		t.Errorf("Failed to get group by its user and its name : " + err.Error())
+	if group.Name != suite.Group.Name {
+		suite.T().Errorf("Failed to get group by its user and its name : The name of the group have changed")
 	}
-	if group.ID != tmpGroup.ID {
-		t.Errorf("Failed to get group by its user and its name : The id of the group have changed")
+	if group.UserID != suite.Group.UserID {
+		suite.T().Errorf("Failed to get group by its user and its name : The user owner of the group have changed")
 	}
-	if group.Name != tmpGroup.Name {
-		t.Errorf("Failed to get group by its user and its name : The name of the group have changed")
-	}
-	if group.UserID != tmpGroup.UserID {
-		t.Errorf("Failed to get group by its user and its name : The user owner of the group have changed")
-	}
-	err = handler.DeleteGroup(tmpGroup.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the group : " + err.Error())
-	}
-	AfterGroupTest(handler, userID)
 }
 
-func TestGetGroupByUserAndNameWrongUser(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
+func (suite *GroupTestSuite) TestGetGroupByUserAndNameWrongUser() {
+	group, err := suite.Handler.GetGroupByUserAndName(-1, suite.Group.Name)
 	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
-	}
-	tmpGroup, err := handler.AddGroup(userID, "TestGroup")
-	if err != nil {
-		t.Errorf("Failed to add group : " + err.Error())
-	}
-	group, err := handler.GetGroupByUserAndName(-1, tmpGroup.Name)
-	if err != nil {
-		t.Errorf("Failed to get group by its user and name : " + err.Error())
+		suite.T().Errorf("Failed to get group by its user and name : " + err.Error())
 	}
 	if group != nil {
-		t.Errorf("Failed to get group by its user and name : A wrong user returns a result")
+		suite.T().Errorf("Failed to get group by its user and name : A wrong user returns a result")
 	}
-	err = handler.DeleteGroup(tmpGroup.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the group : " + err.Error())
-	}
-	AfterGroupTest(handler, userID)
 }
 
-func TestGetGroupByUserAndNameWrongName(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
+func (suite *GroupTestSuite) TestGetGroupByUserAndNameWrongName() {
+	group, err := suite.Handler.GetGroupByUserAndName(suite.Group.UserID, "Toto")
 	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
-	}
-	tmpGroup, err := handler.AddGroup(userID, "TestGroup")
-	if err != nil {
-		t.Errorf("Failed to add group : " + err.Error())
-	}
-	group, err := handler.GetGroupByUserAndName(tmpGroup.ID, "Toto")
-	if err != nil {
-		t.Errorf("Failed to get group by its user and name : " + err.Error())
+		suite.T().Errorf("Failed to get group by its user and name : " + err.Error())
 	}
 	if group != nil {
-		t.Errorf("Failed to get group by its user and name : A wrong name returns a result")
+		suite.T().Errorf("Failed to get group by its user and name : A wrong name returns a result")
 	}
-	err = handler.DeleteGroup(tmpGroup.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the group : " + err.Error())
-	}
-	AfterGroupTest(handler, userID)
 }
 
-func TestUniqueGroupNameByUser(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
-	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
-	}
-	tmpGroup, err := handler.AddGroup(userID, "TestGroup")
-	if err != nil {
-		t.Errorf("Failed to add group : " + err.Error())
-	}
-	group, err := handler.AddGroup(userID, "TestGroup")
+func (suite *GroupTestSuite) TestUniqueGroupNameByUser() {
+	group, err := suite.Handler.AddGroup(suite.Group.UserID, "TestGroup")
 	if err == nil {
-		t.Errorf("Failed to add group : no error whereas break unique constraint on name")
-		err = handler.DeleteGroup(group.ID)
+		suite.T().Errorf("Failed to add group : no error whereas break unique constraint on name")
+		err = suite.Handler.DeleteGroup(group.ID)
 		if err != nil {
-			t.Errorf("Failed to delete group : " + err.Error())
+			suite.T().Errorf("Failed to delete group : " + err.Error())
 		}
 	}
-	err = handler.DeleteGroup(tmpGroup.ID)
-	if err != nil {
-		t.Errorf("Failed to delete group : " + err.Error())
-	}
-	AfterGroupTest(handler, userID)
 }
 
-func TestGetGroupsByUserIDRight(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
+func (suite *GroupTestSuite) TestGetGroupsByUserIDRight() {
+	group1, err := suite.Handler.AddGroup(suite.UserId, "TestGroup1")
 	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
+		suite.T().Errorf("Failed to add the group : " + err.Error())
 	}
-	group1, err := handler.AddGroup(userID, "TestGroup1")
+	group2, err := suite.Handler.AddGroup(suite.UserId, "TestGroup2")
 	if err != nil {
-		t.Errorf("Failed to add the group : " + err.Error())
+		suite.T().Errorf("Failed to add the group : " + err.Error())
 	}
-	group2, err := handler.AddGroup(userID, "TestGroup2")
+	groups, err := suite.Handler.GetGroupsByUserID(suite.UserId)
 	if err != nil {
-		t.Errorf("Failed to add the group : " + err.Error())
+		suite.T().Errorf("Failed to get groups by user id : " + err.Error())
 	}
-	groups, err := handler.GetGroupsByUserID(userID)
-	if err != nil {
-		t.Errorf("Failed to get groups by user id : " + err.Error())
-	}
-	if len(*groups) != 2 {
-		t.Errorf("Failed to get groups by user id : The table returned should contain 2 elements")
+	if len(*groups) != 3 {
+		suite.T().Errorf("Failed to get groups by user id : The table returned should contain 2 elements")
 	}
 	for _, group := range *groups {
-		if group != *group1 && group != *group2 {
-			t.Errorf("Failed to get groups by user id : Unrocognized group")
+		if group != *group1 && group != *group2 && group != *suite.Group {
+			suite.T().Errorf("Failed to get groups by user id : Unrocognized group")
 		}
 	}
-	err = handler.DeleteGroup(group1.ID)
-	if err != nil {
-		t.Errorf("Failed to delete group : " + err.Error())
-	}
-	err = handler.DeleteGroup(group2.ID)
-	if err != nil {
-		t.Errorf("Failed to delete group : " + err.Error())
-	}
-	AfterGroupTest(handler, userID)
 }
 
-func TestGetGroupsByUserIDWrongUserID(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
+func (suite *GroupTestSuite) TestGetGroupsByUserIDWrongUserID() {
+	groups, err := suite.Handler.GetGroupsByUserID(-1)
 	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
-	}
-	groups, err := handler.GetGroupsByUserID(-1)
-	if err != nil {
-		t.Errorf("Failed to get groups by user id : " + err.Error())
+		suite.T().Errorf("Failed to get groups by user id : " + err.Error())
 	}
 	if len(*groups) != 0 {
-		t.Errorf("Failed to get groups by user id : The len of the slice should be equal to 0")
+		suite.T().Errorf("Failed to get groups by user id : The len of the slice should be equal to 0")
 	}
-	AfterGroupTest(handler, userID)
 }
 
-func TestDeleteGroupsByUserRight(t *testing.T) {
-	handler, userID, err := BeforeGroupTest()
+func (suite *GroupTestSuite) TestDeleteGroupsByUserRight() {
+	_, err := suite.Handler.AddGroup(suite.UserId, "Test1")
 	if err != nil {
-		t.Errorf("Failed to initialize test group, see others tests to find more explanation : " + err.Error())
+		suite.T().Errorf("Failed to add group, see others test to fine more explanation : " + err.Error())
 	}
-	_, err = handler.AddGroup(userID, "Test1")
+	_, err = suite.Handler.AddGroup(suite.UserId, "Test2")
 	if err != nil {
-		t.Errorf("Failed to add group, see others test to fine more explanation : " + err.Error())
+		suite.T().Errorf("Failed to add group, see others test to fine more explanation : " + err.Error())
 	}
-	_, err = handler.AddGroup(userID, "Test2")
+	err = suite.Handler.DeleteGroupsByUser(suite.UserId)
 	if err != nil {
-		t.Errorf("Failed to add group, see others test to fine more explanation : " + err.Error())
+		suite.T().Errorf("Failed to delete groups by user : " + err.Error())
 	}
-	err = handler.DeleteGroupsByUser(userID)
+	groups, err := suite.Handler.GetGroupsByUserID(suite.UserId)
 	if err != nil {
-		t.Errorf("Failed to delete groups by user : " + err.Error())
-	}
-	groups, err := handler.GetGroupsByUserID(userID)
-	if err != nil {
-		t.Errorf("Failed to get groups by user id : " + err.Error())
+		suite.T().Errorf("Failed to get groups by user id : " + err.Error())
 	}
 	if len(*groups) != 0 {
-		t.Errorf("Failed to get groups by user id : The len of the slice should be equal to 0")
+		suite.T().Errorf("Failed to get groups by user id : The len of the slice should be equal to 0")
 	}
-	AfterGroupTest(handler, userID)
+}
+
+func TestGroup(t *testing.T) {
+	suite.Run(t, new(GroupTestSuite))
 }

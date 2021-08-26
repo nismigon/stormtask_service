@@ -101,7 +101,7 @@ func TestAddGroupRight(t *testing.T) {
 	}
 	err = server.Database.DeleteGroup(group.ID)
 	if err != nil {
-		t.Errorf("Failedr to delete the group : " + err.Error())
+		t.Errorf("Failed to delete the group : " + err.Error())
 	}
 	AfterGroupTest(server, httpServer, groupID)
 }
