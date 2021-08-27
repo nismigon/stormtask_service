@@ -7,168 +7,130 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"teissem/stormtask/server/configuration"
+	"teissem/stormtask/server/database"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
-func BeforeUserTest() (*Server, *httptest.Server, error) {
+type UserTestSuite struct {
+	suite.Suite
+	Server     *Server
+	HTTPServer *httptest.Server
+	User       *database.UserInformation
+}
+
+func (suite *UserTestSuite) SetupTest() {
 	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
-		return nil, nil, err
+		suite.T().Errorf("Failed to parse the configuration file : " + err.Error())
 	}
 	server, err := InitServer(*conf)
 	if err != nil {
-		return nil, nil, err
-	}
-	httpServer := httptest.NewServer(server.Router)
-	return server, httpServer, nil
-}
-
-func AfterUserTest(server *Server, httpServer *httptest.Server) {
-	httpServer.Close()
-	_ = server.Close()
-}
-
-func TestAuthenticateRight(t *testing.T) {
-	server, httpServer, err := BeforeUserTest()
-	if err != nil {
-		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
+		suite.T().Errorf("Failed to init the web server : " + err.Error())
 	}
 	user, err := server.Database.AddUser("test@test.com", "Test", "Test", false)
 	if err != nil {
-		t.Errorf("Failed to add the user : " + err.Error())
+		suite.T().Errorf("Failed to add the user : " + err.Error())
 	}
+	httpServer := httptest.NewServer(server.Router)
+	suite.Server = server
+	suite.HTTPServer = httpServer
+	suite.User = user
+}
+
+func (suite *UserTestSuite) TearDownTest() {
+	_ = suite.Server.Database.DeleteUser(suite.User.ID)
+	suite.HTTPServer.Close()
+	_ = suite.Server.Close()
+}
+
+func (suite *UserTestSuite) TestAuthenticateRight() {
 	var cred Credentials
-	cred.Email = user.Email
-	cred.Password = user.Password
+	cred.Email = suite.User.Email
+	cred.Password = suite.User.Password
 	authJSON, err := json.Marshal(cred)
 	if err != nil {
-		t.Errorf("Failed to convert the authencication object into JSON : " + err.Error())
+		suite.T().Errorf("Failed to convert the authencication object into JSON : " + err.Error())
 	}
 	body := bytes.NewBuffer(authJSON)
-	response, err := http.Post(httpServer.URL+"/authenticate", "application/json", body)
+	response, err := http.Post(suite.HTTPServer.URL+"/authenticate", "application/json", body)
 	if err != nil {
-		t.Errorf("Failed to get the response for the authenticate route : " + err.Error())
+		suite.T().Errorf("Failed to get the response for the authenticate route : " + err.Error())
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		t.Errorf("Failed to authenticate the user")
+		suite.T().Errorf("Failed to authenticate the user")
 	}
-	cookie := GetCookieByNameForResponse(response, server.Configuration.TokenCookieName)
+	cookie := GetCookieByNameForResponse(response, suite.Server.Configuration.TokenCookieName)
 	if cookie == nil {
-		t.Errorf("Failed to set the token in the cookie")
+		suite.T().Errorf("Failed to set the token in the cookie")
 	}
-	err = server.Database.DeleteUser(user.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the user : " + err.Error())
-	}
-	AfterUserTest(server, httpServer)
 }
 
-func TestAuthenticateWrongEmail(t *testing.T) {
-	server, httpServer, err := BeforeUserTest()
-	if err != nil {
-		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
-	}
-	user, err := server.Database.AddUser("test@test.com", "Test", "Test", false)
-	if err != nil {
-		t.Errorf("Failed to add the user : " + err.Error())
-	}
+func (suite *UserTestSuite) TestAuthenticateWrongEmail() {
 	var cred Credentials
 	cred.Email = "toto@toto.com"
-	cred.Password = user.Password
+	cred.Password = suite.User.Password
 	authJSON, err := json.Marshal(cred)
 	if err != nil {
-		t.Errorf("Failed to convert the authencication object into JSON : " + err.Error())
+		suite.T().Errorf("Failed to convert the authencication object into JSON : " + err.Error())
 	}
 	body := bytes.NewBuffer(authJSON)
-	response, err := http.Post(httpServer.URL+"/authenticate", "application/json", body)
+	response, err := http.Post(suite.HTTPServer.URL+"/authenticate", "application/json", body)
 	if err != nil {
-		t.Errorf("Failed to get the response for the authenticate route : " + err.Error())
+		suite.T().Errorf("Failed to get the response for the authenticate route : " + err.Error())
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusUnauthorized {
-		t.Errorf("Failed to authenticate the user : A wrong email need to be reply with a unauthorized HTTP code")
+		suite.T().Errorf("Failed to authenticate the user : A wrong email need to be reply with a unauthorized HTTP code")
 	}
-	err = server.Database.DeleteUser(user.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the user : " + err.Error())
-	}
-	AfterUserTest(server, httpServer)
 }
 
-func TestAuthenticateWrongPassword(t *testing.T) {
-	server, httpServer, err := BeforeUserTest()
-	if err != nil {
-		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
-	}
-	user, err := server.Database.AddUser("test@test.com", "Test", "Test", false)
-	if err != nil {
-		t.Errorf("Failed to add the user : " + err.Error())
-	}
+func (suite *UserTestSuite) TestAuthenticateWrongPassword() {
 	var cred Credentials
-	cred.Email = user.Email
+	cred.Email = suite.User.Email
 	cred.Password = "Toto"
 	authJSON, err := json.Marshal(cred)
 	if err != nil {
-		t.Errorf("Failed to convert the authencication object into JSON : " + err.Error())
+		suite.T().Errorf("Failed to convert the authencication object into JSON : " + err.Error())
 	}
 	body := bytes.NewBuffer(authJSON)
-	response, err := http.Post(httpServer.URL+"/authenticate", "application/json", body)
+	response, err := http.Post(suite.HTTPServer.URL+"/authenticate", "application/json", body)
 	if err != nil {
-		t.Errorf("Failed to get the response for the authenticate route : " + err.Error())
+		suite.T().Errorf("Failed to get the response for the authenticate route : " + err.Error())
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusUnauthorized {
-		t.Errorf("Failed to authenticate the user : A wrong email need to be reply with a unauthorized HTTP code")
+		suite.T().Errorf("Failed to authenticate the user : A wrong email need to be reply with a unauthorized HTTP code")
 	}
-	err = server.Database.DeleteUser(user.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the user : " + err.Error())
-	}
-	AfterUserTest(server, httpServer)
 }
 
-func TestAddUserRight(t *testing.T) {
-	server, httpServer, err := BeforeUserTest()
-	if err != nil {
-		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
-	}
+func (suite *UserTestSuite) TestAddUserRight() {
 	user := UserBody{
-		Email:    "test@test.com",
+		Email:    "testAddUser@test.com",
 		Password: "Test",
 		Name:     "Test",
 	}
 	content, err := json.Marshal(user)
 	if err != nil {
-		t.Errorf("Failed to marshal the add user struct needed to execute the request : " + err.Error())
+		suite.T().Errorf("Failed to marshal the add user struct needed to execute the request : " + err.Error())
 	}
-	response, err := http.Post(httpServer.URL+"/user", "application/json", bytes.NewReader(content))
+	response, err := http.Post(suite.HTTPServer.URL+"/user", "application/json", bytes.NewReader(content))
 	if err != nil {
-		t.Errorf("Failed to POST the data on the web server : " + err.Error())
+		suite.T().Errorf("Failed to POST the data on the web server : " + err.Error())
 	}
 	if response.StatusCode != http.StatusOK {
-		t.Errorf("Failed to add the user with error code : " + fmt.Sprint(response.StatusCode))
+		suite.T().Errorf("Failed to add the user with error code : " + fmt.Sprint(response.StatusCode))
 	}
-	userInfo, err := server.Database.GetUserByEmail("test@test.com")
+	userInfo, err := suite.Server.Database.GetUserByEmail("testAddUser@test.com")
 	if err != nil {
-		t.Errorf("Failed to get the added user : " + err.Error())
+		suite.T().Errorf("Failed to get the added user : " + err.Error())
 	}
-	err = server.Database.DeleteUser(userInfo.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the user : " + err.Error())
-	}
-	AfterUserTest(server, httpServer)
+	_ = suite.Server.Database.DeleteUser(userInfo.ID)
 }
 
-func TestAddUserWrongAlreadyExistEmail(t *testing.T) {
-	server, httpServer, err := BeforeUserTest()
-	if err != nil {
-		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
-	}
-	_, err = server.Database.AddUser("test@test.com", "Test", "Test", false)
-	if err != nil {
-		t.Errorf("Failed to add the user : " + err.Error())
-	}
+func (suite *UserTestSuite) TestAddUserWrongAlreadyExistEmail() {
 	userStruct := UserBody{
 		Email:    "test@test.com",
 		Password: "Test",
@@ -176,131 +138,97 @@ func TestAddUserWrongAlreadyExistEmail(t *testing.T) {
 	}
 	content, err := json.Marshal(userStruct)
 	if err != nil {
-		t.Errorf("Failed to marshal the add user struct needed to execute the request : " + err.Error())
+		suite.T().Errorf("Failed to marshal the add user struct needed to execute the request : " + err.Error())
 	}
-	response, err := http.Post(httpServer.URL+"/user", "application/json", bytes.NewReader(content))
+	response, err := http.Post(suite.HTTPServer.URL+"/user", "application/json", bytes.NewReader(content))
 	if err != nil {
-		t.Errorf("Failed to POST the data on the web server : " + err.Error())
+		suite.T().Errorf("Failed to POST the data on the web server : " + err.Error())
 	}
 	if response.StatusCode != http.StatusUnauthorized {
-		t.Errorf("Failed to add the user with error code : A dupplicated email doesn't return an unauthorized code")
+		suite.T().Errorf(
+			"Failed to add the user with error code : A dupplicated email doesn't return an unauthorized code")
 	}
-	userInfo, err := server.Database.GetUserByEmail("test@test.com")
-	if err != nil {
-		t.Errorf("Failed to get the added user : " + err.Error())
-	}
-	err = server.Database.DeleteUser(userInfo.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the user : " + err.Error())
-	}
-	AfterUserTest(server, httpServer)
 }
 
-func TestDeleteUserRight(t *testing.T) {
-	server, httpServer, err := BeforeUserTest()
-	if err != nil {
-		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
-	}
-	user, err := server.Database.AddUser("test@test.com", "Test", "Test", false)
-	if err != nil {
-		t.Errorf("Failed to add the user : " + err.Error())
-	}
+func (suite *UserTestSuite) TestDeleteUserRight() {
 	cred := Credentials{
 		Email:    "test@test.com",
 		Password: "Test",
 	}
 	content, err := json.Marshal(cred)
 	if err != nil {
-		t.Errorf("Failed to marshal credentials : " + err.Error())
+		suite.T().Errorf("Failed to marshal credentials : " + err.Error())
 	}
-	response, err := http.Post(httpServer.URL+"/authenticate", "application/json", bytes.NewReader(content))
+	response, err := http.Post(suite.HTTPServer.URL+"/authenticate", "application/json", bytes.NewReader(content))
 	if err != nil {
-		t.Errorf("Failed to POST the request on the web server : " + err.Error())
+		suite.T().Errorf("Failed to POST the request on the web server : " + err.Error())
 	}
 	if response.StatusCode != http.StatusOK {
-		t.Errorf("Failed to authenticate the user with error code : Should return a status 200")
+		suite.T().Errorf("Failed to authenticate the user with error code : Should return a status 200")
 	}
-	cookie := GetCookieByNameForResponse(response, server.Configuration.TokenCookieName)
+	cookie := GetCookieByNameForResponse(response, suite.Server.Configuration.TokenCookieName)
 	if cookie == nil {
-		t.Errorf("Failed to find the token cookie")
+		suite.T().Errorf("Failed to find the token cookie")
 	}
 	client := &http.Client{}
-	req, err := http.NewRequest("DELETE", httpServer.URL+"/user", nil)
+	req, err := http.NewRequest("DELETE", suite.HTTPServer.URL+"/user", nil)
 	if err != nil {
-		t.Errorf("Failed to create a delete request : " + err.Error())
+		suite.T().Errorf("Failed to create a delete request : " + err.Error())
 	}
 	if cookie != nil {
 		req.Header.Set("Cookie", cookie.Name+"="+cookie.Value)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Errorf("Failed to execute the HTTP request : " + err.Error())
+		suite.T().Errorf("Failed to execute the HTTP request : " + err.Error())
 	}
 	if resp.StatusCode != http.StatusOK {
-		t.Errorf("Failed to delete the user with error code : Should retun a status 200")
+		suite.T().Errorf("Failed to delete the user with error code : Should retun a status 200")
 	}
-	deletedUser, err := server.Database.GetUserByID(user.ID)
+	deletedUser, err := suite.Server.Database.GetUserByID(suite.User.ID)
 	if err != nil {
-		t.Errorf("Failed to get the user by it's id : " + err.Error())
+		suite.T().Errorf("Failed to get the user by it's id : " + err.Error())
 	}
 	if deletedUser != nil {
-		t.Errorf("The user have not been deleted")
-		err = server.Database.DeleteUser(user.ID)
-		if err != nil {
-			t.Errorf("Failed to delete the user from the database : " + err.Error())
-		}
+		suite.T().Errorf("The user have not been deleted")
 	}
-	AfterUserTest(server, httpServer)
 }
 
-func TestDeleteUserWrongToken(t *testing.T) {
-	server, httpServer, err := BeforeUserTest()
-	if err != nil {
-		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
-	}
+func (suite *UserTestSuite) TestDeleteUserWrongToken() {
 	client := &http.Client{}
-	req, err := http.NewRequest("DELETE", httpServer.URL+"/user", nil)
+	req, err := http.NewRequest("DELETE", suite.HTTPServer.URL+"/user", nil)
 	if err != nil {
-		t.Errorf("Failed to create a delete request : " + err.Error())
+		suite.T().Errorf("Failed to create a delete request : " + err.Error())
 	}
-	req.Header.Set("Cookie", server.Configuration.TokenCookieName+"=Toto")
+	req.Header.Set("Cookie", suite.Server.Configuration.TokenCookieName+"=Toto")
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Errorf("Failed to execute the HTTP request : " + err.Error())
+		suite.T().Errorf("Failed to execute the HTTP request : " + err.Error())
 	}
 	if resp.StatusCode != http.StatusUnauthorized {
-		t.Errorf("Failed to delete the user with error code : Should retun a status 401")
+		suite.T().Errorf("Failed to delete the user with error code : Should retun a status 401")
 	}
-	AfterUserTest(server, httpServer)
 }
 
-func TestModifyUserRight(t *testing.T) {
-	server, httpServer, err := BeforeUserTest()
-	if err != nil {
-		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
-	}
-	user, err := server.Database.AddUser("test@test.com", "Test", "Test", false)
-	if err != nil {
-		t.Errorf("Failed to add the user : " + err.Error())
-	}
+func (suite *UserTestSuite) TestModifyUserRight() {
 	cred := Credentials{
 		Email:    "test@test.com",
 		Password: "Test",
 	}
 	content, err := json.Marshal(cred)
 	if err != nil {
-		t.Errorf("Failed to marshal credentials : " + err.Error())
+		suite.T().Errorf("Failed to marshal credentials : " + err.Error())
 	}
-	response, err := http.Post(httpServer.URL+"/authenticate", "application/json", bytes.NewReader(content))
+	response, err := http.Post(suite.HTTPServer.URL+"/authenticate", "application/json", bytes.NewReader(content))
 	if err != nil {
-		t.Errorf("Failed to POST the request on the web server : " + err.Error())
+		suite.T().Errorf("Failed to POST the request on the web server : " + err.Error())
 	}
 	if response.StatusCode != http.StatusOK {
-		t.Errorf("Failed to authenticate the user with error code : Should return a status 200")
+		suite.T().Errorf("Failed to authenticate the user with error code : Should return a status 200")
 	}
-	cookie := GetCookieByNameForResponse(response, server.Configuration.TokenCookieName)
+	cookie := GetCookieByNameForResponse(response, suite.Server.Configuration.TokenCookieName)
 	if cookie == nil {
-		t.Errorf("Failed to find the token cookie")
+		suite.T().Errorf("Failed to find the token cookie")
 	}
 	client := &http.Client{}
 	userStruct := UserBody{
@@ -310,41 +238,28 @@ func TestModifyUserRight(t *testing.T) {
 	}
 	content, err = json.Marshal(userStruct)
 	if err != nil {
-		t.Errorf("Failed to marshal the add user struct needed to execute the request : " + err.Error())
+		suite.T().Errorf("Failed to marshal the add user struct needed to execute the request : " + err.Error())
 	}
-	req, err := http.NewRequest("PUT", httpServer.URL+"/user", bytes.NewReader(content))
+	req, err := http.NewRequest("PUT", suite.HTTPServer.URL+"/user", bytes.NewReader(content))
 	if err != nil {
-		t.Errorf("Failed to create a put request : " + err.Error())
+		suite.T().Errorf("Failed to create a put request : " + err.Error())
 	}
 	if cookie != nil {
 		req.Header.Set("Cookie", cookie.Name+"="+cookie.Value)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Errorf("Failed to execute the HTTP request : " + err.Error())
+		suite.T().Errorf("Failed to execute the HTTP request : " + err.Error())
 	}
 	if resp.StatusCode != http.StatusOK {
-		t.Errorf("Failed to delete the user with error code : Should retun a status 200")
+		suite.T().Errorf("Failed to delete the user with error code : Should retun a status 200")
 	}
-	err = server.Database.DeleteUser(user.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the user from the database : " + err.Error())
-	}
-	AfterUserTest(server, httpServer)
 }
 
-func TestModifyUserWrongAlreadyTakenEmail(t *testing.T) {
-	server, httpServer, err := BeforeUserTest()
+func (suite *UserTestSuite) TestModifyUserWrongAlreadyTakenEmail() {
+	userForError, err := suite.Server.Database.AddUser("test2@test.com", "Test", "Test", false)
 	if err != nil {
-		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
-	}
-	user, err := server.Database.AddUser("test@test.com", "Test", "Test", false)
-	if err != nil {
-		t.Errorf("Failed to add the user : " + err.Error())
-	}
-	userForError, err := server.Database.AddUser("test2@test.com", "Test", "Test", false)
-	if err != nil {
-		t.Errorf("Failed to add the user : " + err.Error())
+		suite.T().Errorf("Failed to add the user : " + err.Error())
 	}
 	cred := Credentials{
 		Email:    "test@test.com",
@@ -352,18 +267,18 @@ func TestModifyUserWrongAlreadyTakenEmail(t *testing.T) {
 	}
 	content, err := json.Marshal(cred)
 	if err != nil {
-		t.Errorf("Failed to marshal credentials : " + err.Error())
+		suite.T().Errorf("Failed to marshal credentials : " + err.Error())
 	}
-	response, err := http.Post(httpServer.URL+"/authenticate", "application/json", bytes.NewReader(content))
+	response, err := http.Post(suite.HTTPServer.URL+"/authenticate", "application/json", bytes.NewReader(content))
 	if err != nil {
-		t.Errorf("Failed to POST the request on the web server : " + err.Error())
+		suite.T().Errorf("Failed to POST the request on the web server : " + err.Error())
 	}
 	if response.StatusCode != http.StatusOK {
-		t.Errorf("Failed to authenticate the user with error code : Should return a status 200")
+		suite.T().Errorf("Failed to authenticate the user with error code : Should return a status 200")
 	}
-	cookie := GetCookieByNameForResponse(response, server.Configuration.TokenCookieName)
+	cookie := GetCookieByNameForResponse(response, suite.Server.Configuration.TokenCookieName)
 	if cookie == nil {
-		t.Errorf("Failed to find the token cookie")
+		suite.T().Errorf("Failed to find the token cookie")
 	}
 	client := &http.Client{}
 	userStruct := UserBody{
@@ -373,60 +288,47 @@ func TestModifyUserWrongAlreadyTakenEmail(t *testing.T) {
 	}
 	content, err = json.Marshal(userStruct)
 	if err != nil {
-		t.Errorf("Failed to marshal the add user struct needed to execute the request : " + err.Error())
+		suite.T().Errorf("Failed to marshal the add user struct needed to execute the request : " + err.Error())
 	}
-	req, err := http.NewRequest("PUT", httpServer.URL+"/user", bytes.NewReader(content))
+	req, err := http.NewRequest("PUT", suite.HTTPServer.URL+"/user", bytes.NewReader(content))
 	if err != nil {
-		t.Errorf("Failed to create a put request : " + err.Error())
+		suite.T().Errorf("Failed to create a put request : " + err.Error())
 	}
 	if cookie != nil {
 		req.Header.Set("Cookie", cookie.Name+"="+cookie.Value)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Errorf("Failed to execute the HTTP request : " + err.Error())
+		suite.T().Errorf("Failed to execute the HTTP request : " + err.Error())
 	}
 	if resp.StatusCode != http.StatusConflict {
-		t.Errorf("Failed to delete the user with error code : Should retun a status 409")
+		suite.T().Errorf("Failed to delete the user with error code : Should retun a status 409")
 	}
-	err = server.Database.DeleteUser(user.ID)
+	err = suite.Server.Database.DeleteUser(userForError.ID)
 	if err != nil {
-		t.Errorf("Failed to delete the user from the database : " + err.Error())
+		suite.T().Errorf("Failed to delete the user from the database : " + err.Error())
 	}
-	err = server.Database.DeleteUser(userForError.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the user from the database : " + err.Error())
-	}
-	AfterUserTest(server, httpServer)
 }
 
-func TestModifyUserWrongInvalidToken(t *testing.T) {
-	server, httpServer, err := BeforeUserTest()
-	if err != nil {
-		t.Errorf("Failed to initialize user test, please other test to know what happens : " + err.Error())
-	}
-	user, err := server.Database.AddUser("test@test.com", "Test", "Test", false)
-	if err != nil {
-		t.Errorf("Failed to add the user : " + err.Error())
-	}
+func (suite *UserTestSuite) TestModifyUserWrongInvalidToken() {
 	cred := Credentials{
 		Email:    "test@test.com",
 		Password: "Test",
 	}
 	content, err := json.Marshal(cred)
 	if err != nil {
-		t.Errorf("Failed to marshal credentials : " + err.Error())
+		suite.T().Errorf("Failed to marshal credentials : " + err.Error())
 	}
-	response, err := http.Post(httpServer.URL+"/authenticate", "application/json", bytes.NewReader(content))
+	response, err := http.Post(suite.HTTPServer.URL+"/authenticate", "application/json", bytes.NewReader(content))
 	if err != nil {
-		t.Errorf("Failed to POST the request on the web server : " + err.Error())
+		suite.T().Errorf("Failed to POST the request on the web server : " + err.Error())
 	}
 	if response.StatusCode != http.StatusOK {
-		t.Errorf("Failed to authenticate the user with error code : Should return a status 200")
+		suite.T().Errorf("Failed to authenticate the user with error code : Should return a status 200")
 	}
-	cookie := GetCookieByNameForResponse(response, server.Configuration.TokenCookieName)
+	cookie := GetCookieByNameForResponse(response, suite.Server.Configuration.TokenCookieName)
 	if cookie == nil {
-		t.Errorf("Failed to find the token cookie")
+		suite.T().Errorf("Failed to find the token cookie")
 	}
 	client := &http.Client{}
 	userStruct := UserBody{
@@ -436,25 +338,24 @@ func TestModifyUserWrongInvalidToken(t *testing.T) {
 	}
 	content, err = json.Marshal(userStruct)
 	if err != nil {
-		t.Errorf("Failed to marshal the add user struct needed to execute the request : " + err.Error())
+		suite.T().Errorf("Failed to marshal the add user struct needed to execute the request : " + err.Error())
 	}
-	req, err := http.NewRequest("PUT", httpServer.URL+"/user", bytes.NewReader(content))
+	req, err := http.NewRequest("PUT", suite.HTTPServer.URL+"/user", bytes.NewReader(content))
 	if err != nil {
-		t.Errorf("Failed to create a put request : " + err.Error())
+		suite.T().Errorf("Failed to create a put request : " + err.Error())
 	}
 	if cookie != nil {
 		req.Header.Set("Cookie", cookie.Name+"=MyValue")
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		t.Errorf("Failed to execute the HTTP request : " + err.Error())
+		suite.T().Errorf("Failed to execute the HTTP request : " + err.Error())
 	}
 	if resp.StatusCode != http.StatusUnauthorized {
-		t.Errorf("Failed to delete the user with error code : Should return a status 401")
+		suite.T().Errorf("Failed to delete the user with error code : Should return a status 401")
 	}
-	err = server.Database.DeleteUser(user.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the user from the database : " + err.Error())
-	}
-	AfterUserTest(server, httpServer)
+}
+
+func TestUser(t *testing.T) {
+	suite.Run(t, new(UserTestSuite))
 }
