@@ -84,7 +84,8 @@ func (suite *TaskTestSuite) TestAddTaskWrongGroup() {
 }
 
 func (suite *TaskTestSuite) TestModifyTaskRight() {
-	task, err := suite.Handler.ModifyTask(suite.Task.ID, "New Task", "A bigger description", true, true, suite.Task.IDGroup)
+	task, err := suite.Handler.ModifyTask(suite.Task.ID, "New Task", "A bigger description",
+		true, true, suite.Task.IDGroup)
 	if err != nil {
 		suite.T().Errorf("Failed to modify task : " + err.Error())
 	}

@@ -162,7 +162,8 @@ func (suite *UserTestSuite) TestAuthenticateWrongPassword() {
 		suite.T().Errorf("Failed to authenticate the user in the database : " + err.Error())
 	} else {
 		if user != nil {
-			suite.T().Errorf("Failed to authenticate the user in the database : no error, whereas provided wrong password")
+			suite.T().Errorf(
+				"Failed to authenticate the user in the database : no error, whereas provided wrong password")
 		}
 	}
 	err = suite.Handler.DeleteUser(tmpUser.ID)
