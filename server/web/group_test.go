@@ -3,31 +3,41 @@ package web
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"teissem/stormtask/server/configuration"
 	"teissem/stormtask/server/database"
 	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
-func BeforeGroupTest() (*Server, *httptest.Server, int, int, *http.Cookie, error) {
+type GroupTestSuite struct {
+	suite.Suite
+	Server     *Server
+	HTTPServer *httptest.Server
+	UserID     int
+	GroupID    int
+	Cookie     *http.Cookie
+}
+
+func (suite *GroupTestSuite) SetupTest() {
 	conf, err := configuration.Parse("../../configuration.json")
 	if err != nil {
-		return nil, nil, -1, -1, nil, err
+		suite.T().Errorf("Failed to parse the configuration file : " + err.Error())
 	}
 	server, err := InitServer(*conf)
 	if err != nil {
-		return nil, nil, -1, -1, nil, err
+		suite.T().Errorf("Failed to init the web server : " + err.Error())
 	}
 	user, err := server.Database.AddUser("test@test.com", "Test", "Test", false)
 	if err != nil {
-		return nil, nil, -1, -1, nil, err
+		suite.T().Errorf("Failed to add the user : " + err.Error())
 	}
 	group, err := server.Database.AddGroup(user.ID, "TestGroup")
 	if err != nil {
-		return nil, nil, -1, -1, nil, err
+		suite.T().Errorf("Failed to add the group : " + err.Error())
 	}
 	httpServer := httptest.NewServer(server.Router)
 	cred := Credentials{
@@ -36,135 +46,119 @@ func BeforeGroupTest() (*Server, *httptest.Server, int, int, *http.Cookie, error
 	}
 	content, err := json.Marshal(cred)
 	if err != nil {
-		return nil, nil, -1, -1, nil, err
+		suite.T().Errorf("Failed to convert into JSON the credentials : " + err.Error())
 	}
 	response, err := http.Post(httpServer.URL+"/authenticate", "application/json", bytes.NewReader(content))
 	if err != nil {
-		return nil, nil, -1, -1, nil, err
+		suite.T().Errorf("Failed to send the authentication request : " + err.Error())
 	}
 	if response.StatusCode != http.StatusOK {
-		err := errors.New("Failed to authenticate the user with error code : Should return a status 200")
-		return nil, nil, -1, -1, nil, err
+		suite.T().Errorf("Failed to send the authentication request : An error is returned")
 	}
 	cookie := GetCookieByNameForResponse(response, server.Configuration.TokenCookieName)
 	if cookie == nil {
-		err := errors.New("Failed to find the token cookie")
-		return nil, nil, -1, -1, nil, err
+		suite.T().Errorf("Failed to get the cookie")
 	}
-	return server, httpServer, user.ID, group.ID, cookie, nil
+	suite.Server = server
+	suite.HTTPServer = httpServer
+	suite.UserID = user.ID
+	suite.GroupID = group.ID
+	suite.Cookie = cookie
 }
 
-func AfterGroupTest(server *Server, httpServer *httptest.Server, groupID int) {
-	group, _ := server.Database.GetGroupByID(groupID)
-	_ = server.Database.DeleteGroup(group.ID)
-	_ = server.Database.DeleteUser(group.UserID)
-	httpServer.Close()
-	_ = server.Close()
+func (suite *GroupTestSuite) TearDownTest() {
+	_ = suite.Server.Database.DeleteUser(suite.UserID)
+	suite.HTTPServer.Close()
+	_ = suite.Server.Close()
 }
 
-func TestAddGroupRight(t *testing.T) {
-	server, httpServer, userID, groupID, cookie, err := BeforeGroupTest()
-	if err != nil {
-		t.Errorf("Failed to initialize group test, please other test to know what happens : " + err.Error())
-	}
+func (suite *GroupTestSuite) TestAddGroupRight() {
 	groupBody := GroupNameBody{
 		Name: "MyNameForANewGroup",
 	}
 	groupJSON, err := json.Marshal(groupBody)
 	if err != nil {
-		t.Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
+		suite.T().Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
 	}
 	body := bytes.NewBuffer(groupJSON)
-	req, err := http.NewRequest("POST", httpServer.URL+"/group", body)
+	req, err := http.NewRequest("POST", suite.HTTPServer.URL+"/group", body)
 	if err != nil {
-		t.Errorf("Failed to create a post request for group : " + err.Error())
+		suite.T().Errorf("Failed to create a post request for group : " + err.Error())
 	}
-	if cookie != nil {
-		req.Header.Set("Cookie", cookie.Name+"="+cookie.Value)
+	if suite.Cookie != nil {
+		req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
 	}
 	client := &http.Client{}
 	response, err := client.Do(req)
 	if err != nil {
-		t.Errorf("Failed to get the response for the get route : " + err.Error())
+		suite.T().Errorf("Failed to get the response for the get route : " + err.Error())
 	}
 	if response.StatusCode != http.StatusOK {
-		t.Errorf("Failed to add the group : " + err.Error())
+		suite.T().Errorf("Failed to add the group : " + err.Error())
 	}
-	group, err := server.Database.GetGroupByUserAndName(userID, "MyNameForANewGroup")
+	group, err := suite.Server.Database.GetGroupByUserAndName(suite.UserID, "MyNameForANewGroup")
 	if err != nil {
-		t.Errorf("Failed to delete the group : " + err.Error())
+		suite.T().Errorf("Failed to delete the group : " + err.Error())
 	}
 	if group == nil {
-		t.Errorf("Failed to find the added group")
-		AfterGroupTest(server, httpServer, groupID)
-		return
+		suite.T().Errorf("Failed to find the added group")
 	}
-	err = server.Database.DeleteGroup(group.ID)
-	if err != nil {
-		t.Errorf("Failed to delete the group : " + err.Error())
-	}
-	AfterGroupTest(server, httpServer, groupID)
 }
 
-func TestAddGroupWrongName(t *testing.T) {
-	server, httpServer, _, groupID, cookie, err := BeforeGroupTest()
-	if err != nil {
-		t.Errorf("Failed to initialize group test, please other test to know what happens : " + err.Error())
-	}
+func (suite *GroupTestSuite) TestAddGroupWrongName() {
 	groupBody := GroupNameBody{
 		Name: "TestGroup",
 	}
 	groupJSON, err := json.Marshal(groupBody)
 	if err != nil {
-		t.Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
+		suite.T().Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
 	}
 	body := bytes.NewBuffer(groupJSON)
-	req, err := http.NewRequest("POST", httpServer.URL+"/group", body)
+	req, err := http.NewRequest("POST", suite.HTTPServer.URL+"/group", body)
 	if err != nil {
-		t.Errorf("Failed to create a post request for group : " + err.Error())
+		suite.T().Errorf("Failed to create a post request for group : " + err.Error())
 	}
-	if cookie != nil {
-		req.Header.Set("Cookie", cookie.Name+"="+cookie.Value)
+	if suite.Cookie != nil {
+		req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
 	}
 	client := &http.Client{}
 	response, err := client.Do(req)
 	if err != nil {
-		t.Errorf("Failed to get the response for the post route : " + err.Error())
+		suite.T().Errorf("Failed to get the response for the post route : " + err.Error())
 	}
 	if response.StatusCode != http.StatusUnauthorized {
-		t.Errorf("Failed to add the group : Add a group with the same name should return an Unauthorized HTTP code")
+		suite.T().Errorf(
+			"Failed to add the group : Add a group with the same name should return an Unauthorized HTTP code")
 	}
-	AfterGroupTest(server, httpServer, groupID)
 }
 
-func TestGetGroupsByUserIDRight(t *testing.T) {
-	server, httpServer, _, groupID, cookie, err := BeforeGroupTest()
+func (suite *GroupTestSuite) TestGetGroupsByUserIDRight() {
+	req, err := http.NewRequest("GET", suite.HTTPServer.URL+"/group", nil)
 	if err != nil {
-		t.Errorf("Failed to initialize group test, please other test to know what happens : " + err.Error())
+		suite.T().Errorf("Failed to create a post request for group : " + err.Error())
 	}
-	req, err := http.NewRequest("GET", httpServer.URL+"/group", nil)
-	if err != nil {
-		t.Errorf("Failed to create a post request for group : " + err.Error())
-	}
-	if cookie != nil {
-		req.Header.Set("Cookie", cookie.Name+"="+cookie.Value)
+	if suite.Cookie != nil {
+		req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
 	}
 	client := &http.Client{}
 	response, err := client.Do(req)
 	if err != nil {
-		t.Errorf("Failed to get the response for the get route : " + err.Error())
+		suite.T().Errorf("Failed to get the response for the get route : " + err.Error())
 	}
 	if response.StatusCode != http.StatusOK {
-		t.Error("Failed to get the differents groups : return an error code " +
+		suite.T().Error("Failed to get the differents groups : return an error code " +
 			strconv.FormatInt(int64(response.StatusCode), 10))
 	}
 	var groups []database.GroupInformation
 	err = json.NewDecoder(response.Body).Decode(&groups)
 	if err != nil {
-		t.Errorf("Failed to decode the body of the response with : " + err.Error())
+		suite.T().Errorf("Failed to decode the body of the response with : " + err.Error())
 	}
 	if len(groups) != 1 {
-		t.Errorf("Failed to get the correct result : the array of group should contain 1 element")
+		suite.T().Errorf("Failed to get the correct result : the array of group should contain 1 element")
 	}
-	AfterGroupTest(server, httpServer, groupID)
+}
+
+func TestGroup(t *testing.T) {
+	suite.Run(t, new(GroupTestSuite))
 }
