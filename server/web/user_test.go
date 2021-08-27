@@ -83,7 +83,8 @@ func (suite *UserTestSuite) TestAuthenticateWrongEmail() {
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusUnauthorized {
-		suite.T().Errorf("Failed to authenticate the user : A wrong email need to be reply with a unauthorized HTTP code")
+		suite.T().Errorf(
+			"Failed to authenticate the user : A wrong email need to be reply with a unauthorized HTTP code")
 	}
 }
 
@@ -102,7 +103,8 @@ func (suite *UserTestSuite) TestAuthenticateWrongPassword() {
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusUnauthorized {
-		suite.T().Errorf("Failed to authenticate the user : A wrong email need to be reply with a unauthorized HTTP code")
+		suite.T().Errorf(
+			"Failed to authenticate the user : A wrong email need to be reply with a unauthorized HTTP code")
 	}
 }
 
