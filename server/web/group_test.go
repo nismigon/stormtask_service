@@ -162,7 +162,7 @@ func (suite *GroupTestSuite) TestGetGroupsByUserIDRight() {
 
 func (suite *GroupTestSuite) TestModifyGroupRight() {
 	groupBody := GroupIDNameBody{
-		ID: suite.GroupID,
+		ID:   suite.GroupID,
 		Name: "New Group Name",
 	}
 	groupJSON, err := json.Marshal(groupBody)
@@ -191,7 +191,7 @@ func (suite *GroupTestSuite) TestModifyGroupRight() {
 
 func (suite *GroupTestSuite) TestModifyGroupWrongNotFound() {
 	groupBody := GroupIDNameBody{
-		ID: -1,
+		ID:   -1,
 		Name: "New Group Name",
 	}
 	groupJSON, err := json.Marshal(groupBody)
@@ -228,7 +228,7 @@ func (suite *GroupTestSuite) TestModifyGroupWrongUserID() {
 		suite.T().Errorf("Failed to add group to the database : " + err.Error())
 	}
 	groupBody := GroupIDNameBody{
-		ID: group.ID,
+		ID:   group.ID,
 		Name: "New Group Name",
 	}
 	groupJSON, err := json.Marshal(groupBody)
@@ -247,7 +247,6 @@ func (suite *GroupTestSuite) TestModifyGroupWrongUserID() {
 		suite.T().Errorf("Failed to get the response for the modify route : " + err.Error())
 	}
 	assert.Equal(suite.T(), 401, response.StatusCode)
-
 }
 
 func TestGroup(t *testing.T) {
