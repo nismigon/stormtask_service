@@ -3,6 +3,7 @@ package web
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
@@ -157,6 +158,96 @@ func (suite *GroupTestSuite) TestGetGroupsByUserIDRight() {
 	if len(groups) != 1 {
 		suite.T().Errorf("Failed to get the correct result : the array of group should contain 1 element")
 	}
+}
+
+func (suite *GroupTestSuite) TestModifyGroupRight() {
+	groupBody := GroupIDNameBody{
+		ID: suite.GroupID,
+		Name: "New Group Name",
+	}
+	groupJSON, err := json.Marshal(groupBody)
+	if err != nil {
+		suite.T().Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(groupJSON)
+	req, err := http.NewRequest("PUT", suite.HTTPServer.URL+"/group", body)
+	if err != nil {
+		suite.T().Errorf("Failed to create the request : " + err.Error())
+	}
+	req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		suite.T().Errorf("Failed to get the response for the modify route : " + err.Error())
+	}
+	assert.Equal(suite.T(), 200, response.StatusCode)
+	group, err := suite.Server.Database.GetGroupByID(suite.GroupID)
+	if err != nil {
+		suite.T().Errorf("Failed to get the group : " + err.Error())
+	}
+	assert.NotNil(suite.T(), group)
+	assert.Equal(suite.T(), "New Group Name", group.Name)
+}
+
+func (suite *GroupTestSuite) TestModifyGroupWrongNotFound() {
+	groupBody := GroupIDNameBody{
+		ID: -1,
+		Name: "New Group Name",
+	}
+	groupJSON, err := json.Marshal(groupBody)
+	if err != nil {
+		suite.T().Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(groupJSON)
+	req, err := http.NewRequest("PUT", suite.HTTPServer.URL+"/group", body)
+	if err != nil {
+		suite.T().Errorf("Failed to create the request : " + err.Error())
+	}
+	req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		suite.T().Errorf("Failed to get the response for the modify route : " + err.Error())
+	}
+	assert.Equal(suite.T(), 404, response.StatusCode)
+}
+
+func (suite *GroupTestSuite) TestModifyGroupWrongUserID() {
+	user, err := suite.Server.Database.AddUser("test2@test2.com", "Test", "Pass", false)
+	if err != nil {
+		suite.T().Errorf("Failed to add the user to the database : " + err.Error())
+	}
+	defer func(Database *database.DBHandler, id int) {
+		err := Database.DeleteUser(id)
+		if err != nil {
+			suite.T().Errorf("Failed to delete the user with error : " + err.Error())
+		}
+	}(suite.Server.Database, user.ID)
+	group, err := suite.Server.Database.AddGroup(user.ID, "MyGroup")
+	if err != nil {
+		suite.T().Errorf("Failed to add group to the database : " + err.Error())
+	}
+	groupBody := GroupIDNameBody{
+		ID: group.ID,
+		Name: "New Group Name",
+	}
+	groupJSON, err := json.Marshal(groupBody)
+	if err != nil {
+		suite.T().Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(groupJSON)
+	req, err := http.NewRequest("PUT", suite.HTTPServer.URL+"/group", body)
+	if err != nil {
+		suite.T().Errorf("Failed to create the request : " + err.Error())
+	}
+	req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		suite.T().Errorf("Failed to get the response for the modify route : " + err.Error())
+	}
+	assert.Equal(suite.T(), 401, response.StatusCode)
+
 }
 
 func TestGroup(t *testing.T) {

@@ -34,6 +34,6 @@ func InitServer(configuration configuration.ConfStruct) (*Server, error) {
 }
 
 // Close close the server connection
-func (server *Server) Close() error {
-	return server.Database.Close()
+func (s *Server) Close() error {
+	return s.Database.Close()
 }

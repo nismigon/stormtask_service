@@ -19,13 +19,13 @@ type GroupIDNameBody struct {
 // If the cookie is not found, or if the token is invalid, this function returns a 401 HTTP code (Unauthorized)
 // If the body can be parsed, this function returns a 400 HTTP code (Bad request)
 // If the group is not added to the database, this function returns a 401 HTTP code (Unauthorized)
-func (server *Server) AddGroup(w http.ResponseWriter, r *http.Request) {
-	cookie := GetCookieByNameForRequest(r, server.Configuration.TokenCookieName)
+func (s *Server) AddGroup(w http.ResponseWriter, r *http.Request) {
+	cookie := GetCookieByNameForRequest(r, s.Configuration.TokenCookieName)
 	if cookie == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	claims, err := server.ValidateAndExtractToken(cookie.Value)
+	claims, err := s.ValidateAndExtractToken(cookie.Value)
 	if err != nil || claims == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -36,7 +36,7 @@ func (server *Server) AddGroup(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	_, err = server.Database.AddGroup(claims.ID, groupBody.Name)
+	_, err = s.Database.AddGroup(claims.ID, groupBody.Name)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
@@ -49,23 +49,66 @@ func (server *Server) AddGroup(w http.ResponseWriter, r *http.Request) {
 // If the cookie is not found, or if the token is invalid, this function returns a 401 HTTP code (Unauthorized)
 // If an error occurred when we try to get user groups or when encoding the JSON, this functions returns a 500
 // HTTP code (Internal Server Error)
-func (server *Server) GetGroupsByUserID(w http.ResponseWriter, r *http.Request) {
-	cookie := GetCookieByNameForRequest(r, server.Configuration.TokenCookieName)
+func (s *Server) GetGroupsByUserID(w http.ResponseWriter, r *http.Request) {
+	cookie := GetCookieByNameForRequest(r, s.Configuration.TokenCookieName)
 	if cookie == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	claims, err := server.ValidateAndExtractToken(cookie.Value)
+	claims, err := s.ValidateAndExtractToken(cookie.Value)
 	if err != nil || claims == nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	groups, err := server.Database.GetGroupsByUserID(claims.ID)
+	groups, err := s.Database.GetGroupsByUserID(claims.ID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	err = json.NewEncoder(w).Encode(groups)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+}
+
+// ModifyGroup modifies a group of the user which own the token
+// In the nominal case, this function returns a 200 HTTP code (OK)
+// If the cookie is not found, or if the token is invalid, this function returns a 401 HTTP code (Unauthorized)
+// If the body can be parsed, this function returns a 400 HTTP code (Bad request)
+// If the group is not found, this function returns a 404 HTTP code (Not found)
+// If the group is not owned by the user on the token, this function returns a 401 HTTP code (Unauthorized)
+// If an error occurred during the change of the group name, this function returns a
+// 500 HTTP code (Internal Server Error)
+func (s *Server) ModifyGroup(w http.ResponseWriter, r *http.Request) {
+	cookie := GetCookieByNameForRequest(r, s.Configuration.TokenCookieName)
+	if cookie == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	claims, err := s.ValidateAndExtractToken(cookie.Value)
+	if err != nil || claims == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	var groupBody GroupIDNameBody
+	err = json.NewDecoder(r.Body).Decode(&groupBody)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// Verification if the group is owned by the user
+	group, err := s.Database.GetGroupByID(groupBody.ID)
+	if err != nil || group == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if group.UserID != claims.ID {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	// Modification of the group
+	_, err = s.Database.ModifyGroup(groupBody.ID, groupBody.Name)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
