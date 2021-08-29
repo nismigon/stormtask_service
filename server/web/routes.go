@@ -11,6 +11,7 @@ func (s *Server) InitRoutes() {
 	handlerGetGroups := http.HandlerFunc(s.GetGroupsByUserID)
 	handlerModifyGroup := http.HandlerFunc(s.ModifyGroup)
 	handlerDeleteGroup := http.HandlerFunc(s.DeleteGroup)
+	handlerAddTask := http.HandlerFunc(s.AddTask)
 	s.Router.Handle("/authenticate", handlerAuthenticate).Methods("POST")
 	s.Router.Handle("/user", handlerAddUser).Methods("POST")
 	s.Router.Handle("/user", s.VerifyToken(handlerDeleteUser)).Methods("DELETE")
@@ -19,4 +20,5 @@ func (s *Server) InitRoutes() {
 	s.Router.Handle("/group", s.VerifyToken(handlerGetGroups)).Methods("GET")
 	s.Router.Handle("/group", s.VerifyToken(handlerModifyGroup)).Methods("PUT")
 	s.Router.Handle("/group", s.VerifyToken(handlerDeleteGroup)).Methods("DELETE")
+	s.Router.Handle("/task", s.VerifyToken(handlerAddTask)).Methods("POST")
 }
