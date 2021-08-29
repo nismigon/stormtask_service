@@ -112,7 +112,12 @@ func (suite *TaskTestSuite) TestAddTaskRight() {
 func (suite *TaskTestSuite) TestAddTaskWrongGroupForUser() {
 	user, err := suite.Server.Database.AddUser("user@user.com", "User", "Password", false)
 	assert.Nil(suite.T(), err)
-	defer suite.Server.Database.DeleteUser(user.ID)
+	defer func(Database *database.DBHandler, id int) {
+		err := Database.DeleteUser(id)
+		if err != nil {
+			suite.T().Errorf("Failed to delete the user with error : " + err.Error())
+		}
+	}(suite.Server.Database, user.ID)
 	group, err := suite.Server.Database.AddGroup(user.ID, "MyGroup")
 	assert.Nil(suite.T(), err)
 	taskBody := TaskWithoutIDBody{
@@ -154,6 +159,133 @@ func (suite *TaskTestSuite) TestAddTaskWrongGroupId() {
 	}
 	body := bytes.NewBuffer(taskJSON)
 	req, err := http.NewRequest("POST", suite.HTTPServer.URL+"/task", body)
+	if err != nil {
+		suite.T().Errorf("Failed to create a post request for task : " + err.Error())
+	}
+	req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		suite.T().Errorf("Failed to get the response for the get route : " + err.Error())
+	}
+	assert.Equal(suite.T(), 404, response.StatusCode)
+}
+
+func (suite *TaskTestSuite) TestModifyTaskRight() {
+	taskBody := TaskCompleteBody{
+		ID:          suite.Task.ID,
+		Name:        "My Task",
+		Description: "Description of my task",
+		IsFinished:  false,
+		IsArchived:  false,
+		IDGroup:     suite.Group.ID,
+	}
+	taskJSON, err := json.Marshal(taskBody)
+	if err != nil {
+		suite.T().Errorf("Failed to convert into JSON the TaskCompleteBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(taskJSON)
+	req, err := http.NewRequest("PUT", suite.HTTPServer.URL+"/task", body)
+	if err != nil {
+		suite.T().Errorf("Failed to create a post request for task : " + err.Error())
+	}
+	req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		suite.T().Errorf("Failed to get the response for the get route : " + err.Error())
+	}
+	assert.Equal(suite.T(), 200, response.StatusCode)
+	task, err := suite.Server.Database.GetTaskByID(suite.Task.ID)
+	if err != nil {
+		suite.T().Errorf("Failed to get the task : " + err.Error())
+	}
+	assert.Equal(suite.T(), "My Task", task.Name)
+	assert.Equal(suite.T(), "Description of my task", task.Description)
+	assert.Equal(suite.T(), false, task.IsFinished)
+	assert.Equal(suite.T(), false, task.IsArchived)
+	assert.Equal(suite.T(), suite.Group.ID, task.IDGroup)
+}
+
+func (suite *TaskTestSuite) TestModifyTaskWrongGroupForUser() {
+	user, err := suite.Server.Database.AddUser("user@user.com", "User", "Password", false)
+	assert.Nil(suite.T(), err)
+	defer func(Database *database.DBHandler, id int) {
+		err := Database.DeleteUser(id)
+		if err != nil {
+			suite.T().Errorf("Failed to delete the user with error : " + err.Error())
+		}
+	}(suite.Server.Database, user.ID)
+	group, err := suite.Server.Database.AddGroup(user.ID, "MyGroup")
+	assert.Nil(suite.T(), err)
+	taskBody := TaskCompleteBody{
+		ID:          suite.Task.ID,
+		Name:        "My Task",
+		Description: "Description of my task",
+		IsFinished:  false,
+		IsArchived:  false,
+		IDGroup:     group.ID,
+	}
+	taskJSON, err := json.Marshal(taskBody)
+	if err != nil {
+		suite.T().Errorf("Failed to convert into JSON the TaskCompleteBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(taskJSON)
+	req, err := http.NewRequest("PUT", suite.HTTPServer.URL+"/task", body)
+	if err != nil {
+		suite.T().Errorf("Failed to create a post request for task : " + err.Error())
+	}
+	req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		suite.T().Errorf("Failed to get the response for the get route : " + err.Error())
+	}
+	assert.Equal(suite.T(), 401, response.StatusCode)
+}
+
+func (suite *TaskTestSuite) TestModifyTaskWrongGroupId() {
+	taskBody := TaskCompleteBody{
+		ID:          suite.Task.ID,
+		Name:        "My Task",
+		Description: "Description of my task",
+		IsFinished:  false,
+		IsArchived:  false,
+		IDGroup:     -1,
+	}
+	taskJSON, err := json.Marshal(taskBody)
+	if err != nil {
+		suite.T().Errorf("Failed to convert into JSON the TaskWithoutIDBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(taskJSON)
+	req, err := http.NewRequest("POST", suite.HTTPServer.URL+"/task", body)
+	if err != nil {
+		suite.T().Errorf("Failed to create a post request for task : " + err.Error())
+	}
+	req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		suite.T().Errorf("Failed to get the response for the get route : " + err.Error())
+	}
+	assert.Equal(suite.T(), 404, response.StatusCode)
+}
+
+func (suite *TaskTestSuite) TestModifyTaskWrongTask() {
+	taskBody := TaskCompleteBody{
+		ID:          -1,
+		Name:        "My Task",
+		Description: "Description of my task",
+		IsFinished:  false,
+		IsArchived:  false,
+		IDGroup:     suite.Group.ID,
+	}
+	taskJSON, err := json.Marshal(taskBody)
+	if err != nil {
+		suite.T().Errorf("Failed to convert into JSON the TaskCompleteBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(taskJSON)
+	req, err := http.NewRequest("PUT", suite.HTTPServer.URL+"/task", body)
 	if err != nil {
 		suite.T().Errorf("Failed to create a post request for task : " + err.Error())
 	}

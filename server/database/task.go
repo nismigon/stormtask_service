@@ -41,7 +41,7 @@ func (db *DBHandler) GetTaskByID(id int) (*TaskInformation, error) {
 	var task TaskInformation
 	err = row.Scan(&task.ID, &task.Name, &task.Description, &task.IsFinished, &task.IsArchived, &task.IDGroup)
 	if err != nil {
-		return nil, err
+		return nil, nil
 	}
 	return &task, nil
 }

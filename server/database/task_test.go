@@ -4,6 +4,7 @@ import (
 	"teissem/stormtask/server/configuration"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -107,10 +108,11 @@ func (suite *TaskTestSuite) TestModifyTaskRight() {
 }
 
 func (suite *TaskTestSuite) TestModifyTaskWrongID() {
-	_, err := suite.Handler.ModifyTask(-1, "Test", "Test", false, false, suite.Task.IDGroup)
-	if err == nil {
-		suite.T().Errorf("Failed to modify task : give a wrong ID doesn't return an error")
+	task, err := suite.Handler.ModifyTask(-1, "Test", "Test", false, false, suite.Task.IDGroup)
+	if err != nil {
+		suite.T().Errorf("Failed to modify task : " + err.Error())
 	}
+	assert.Nil(suite.T(), task)
 }
 
 func (suite *TaskTestSuite) TestModifyTaskWrongGroupID() {
@@ -143,10 +145,11 @@ func (suite *TaskTestSuite) TestGetTaskByIDRight() {
 }
 
 func (suite *TaskTestSuite) TestGetTaskByIDWrongID() {
-	_, err := suite.Handler.GetTaskByID(-1)
-	if err == nil {
-		suite.T().Errorf("Failed to get task by its ID : No error whereas wrong task ID given")
+	task, err := suite.Handler.GetTaskByID(-1)
+	if err != nil {
+		suite.T().Errorf("Failed to get task by its ID : " + err.Error())
 	}
+	assert.Nil(suite.T(), task)
 }
 
 func (suite *TaskTestSuite) TestGetTaskByGroupRight() {
@@ -163,7 +166,7 @@ func (suite *TaskTestSuite) TestGetTaskByGroupRight() {
 	}
 }
 
-func (suite *TaskTestSuite) TestDBHandler_DeleteTasksByGroup() {
+func (suite *TaskTestSuite) TestDeleteTasksByGroup() {
 	_, err := suite.Handler.AddTask("Test1", "Description", false, false, suite.Group.ID)
 	if err != nil {
 		suite.T().Errorf("Failed to add task : " + err.Error())
