@@ -79,7 +79,7 @@ func (suite *GroupTestSuite) TestAddGroupRight() {
 	}
 	groupJSON, err := json.Marshal(groupBody)
 	if err != nil {
-		suite.T().Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
+		suite.T().Errorf("Failed to convert into JSON the GroupNameBody object : " + err.Error())
 	}
 	body := bytes.NewBuffer(groupJSON)
 	req, err := http.NewRequest("POST", suite.HTTPServer.URL+"/group", body)
@@ -112,7 +112,7 @@ func (suite *GroupTestSuite) TestAddGroupWrongName() {
 	}
 	groupJSON, err := json.Marshal(groupBody)
 	if err != nil {
-		suite.T().Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
+		suite.T().Errorf("Failed to convert into JSON the GroupNameBody object : " + err.Error())
 	}
 	body := bytes.NewBuffer(groupJSON)
 	req, err := http.NewRequest("POST", suite.HTTPServer.URL+"/group", body)
@@ -167,7 +167,7 @@ func (suite *GroupTestSuite) TestModifyGroupRight() {
 	}
 	groupJSON, err := json.Marshal(groupBody)
 	if err != nil {
-		suite.T().Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
+		suite.T().Errorf("Failed to convert into JSON the GroupIDNameBody object : " + err.Error())
 	}
 	body := bytes.NewBuffer(groupJSON)
 	req, err := http.NewRequest("PUT", suite.HTTPServer.URL+"/group", body)
@@ -196,7 +196,7 @@ func (suite *GroupTestSuite) TestModifyGroupWrongNotFound() {
 	}
 	groupJSON, err := json.Marshal(groupBody)
 	if err != nil {
-		suite.T().Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
+		suite.T().Errorf("Failed to convert into JSON the GroupIDNameBody object : " + err.Error())
 	}
 	body := bytes.NewBuffer(groupJSON)
 	req, err := http.NewRequest("PUT", suite.HTTPServer.URL+"/group", body)
@@ -233,7 +233,7 @@ func (suite *GroupTestSuite) TestModifyGroupWrongUserID() {
 	}
 	groupJSON, err := json.Marshal(groupBody)
 	if err != nil {
-		suite.T().Errorf("Failed to convert into JSON the AddGroupBody object : " + err.Error())
+		suite.T().Errorf("Failed to convert into JSON the GroupIDNameBody object : " + err.Error())
 	}
 	body := bytes.NewBuffer(groupJSON)
 	req, err := http.NewRequest("PUT", suite.HTTPServer.URL+"/group", body)
@@ -245,6 +245,91 @@ func (suite *GroupTestSuite) TestModifyGroupWrongUserID() {
 	response, err := client.Do(req)
 	if err != nil {
 		suite.T().Errorf("Failed to get the response for the modify route : " + err.Error())
+	}
+	assert.Equal(suite.T(), 401, response.StatusCode)
+}
+
+func (suite *GroupTestSuite) TestDeleteGroupRight() {
+	groupBody := GroupIDBody{
+		ID: suite.GroupID,
+	}
+	groupJSON, err := json.Marshal(groupBody)
+	if err != nil {
+		suite.T().Errorf("Failed to convert into JSON the GroupIDBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(groupJSON)
+	req, err := http.NewRequest("DELETE", suite.HTTPServer.URL+"/group", body)
+	if err != nil {
+		suite.T().Errorf("Failed to create the request : " + err.Error())
+	}
+	req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		suite.T().Errorf("Failed to get the response for the delete route : " + err.Error())
+	}
+	assert.Equal(suite.T(), 200, response.StatusCode)
+	group, err := suite.Server.Database.GetGroupByID(suite.GroupID)
+	if err != nil {
+		suite.T().Errorf("Failed to get the group : " + err.Error())
+	}
+	assert.Nil(suite.T(), group)
+}
+
+func (suite *GroupTestSuite) TestDeleteGroupWrongNotFound() {
+	groupBody := GroupIDBody{
+		ID: -1,
+	}
+	groupJSON, err := json.Marshal(groupBody)
+	if err != nil {
+		suite.T().Errorf("Failed to convert into JSON the GroupIDBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(groupJSON)
+	req, err := http.NewRequest("DELETE", suite.HTTPServer.URL+"/group", body)
+	if err != nil {
+		suite.T().Errorf("Failed to create the request : " + err.Error())
+	}
+	req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		suite.T().Errorf("Failed to get the response for the delete route : " + err.Error())
+	}
+	assert.Equal(suite.T(), 404, response.StatusCode)
+}
+
+func (suite *GroupTestSuite) TestDeleteGroupWrongUserID() {
+	user, err := suite.Server.Database.AddUser("test2@test2.com", "Test", "Pass", false)
+	if err != nil {
+		suite.T().Errorf("Failed to add the user to the database : " + err.Error())
+	}
+	defer func(Database *database.DBHandler, id int) {
+		err := Database.DeleteUser(id)
+		if err != nil {
+			suite.T().Errorf("Failed to delete the user with error : " + err.Error())
+		}
+	}(suite.Server.Database, user.ID)
+	group, err := suite.Server.Database.AddGroup(user.ID, "MyGroup")
+	if err != nil {
+		suite.T().Errorf("Failed to add group to the database : " + err.Error())
+	}
+	groupBody := GroupIDBody{
+		ID: group.ID,
+	}
+	groupJSON, err := json.Marshal(groupBody)
+	if err != nil {
+		suite.T().Errorf("Failed to convert into JSON the GroupIDBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(groupJSON)
+	req, err := http.NewRequest("DELETE", suite.HTTPServer.URL+"/group", body)
+	if err != nil {
+		suite.T().Errorf("Failed to create the request : " + err.Error())
+	}
+	req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		suite.T().Errorf("Failed to get the response for the delete route : " + err.Error())
 	}
 	assert.Equal(suite.T(), 401, response.StatusCode)
 }

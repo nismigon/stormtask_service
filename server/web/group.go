@@ -5,6 +5,10 @@ import (
 	"net/http"
 )
 
+type GroupIDBody struct {
+	ID int
+}
+
 type GroupNameBody struct {
 	Name string
 }
@@ -109,6 +113,50 @@ func (s *Server) ModifyGroup(w http.ResponseWriter, r *http.Request) {
 	}
 	// Modification of the group
 	_, err = s.Database.ModifyGroup(groupBody.ID, groupBody.Name)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+}
+
+// DeleteGroup deletes a group if the the user which own the token
+// In the nominal case, this function returns a 200 HTTP code (OK)
+// If the cookie is not found, or if the token is invalid, this function returns a 401 HTTP code (Unauthorized)
+// If the body can be parsed, this function returns a 400 HTTP code (Bad request)
+// If the group is not found, this function returns a 404 HTTP code (Not found)
+// If the group is not owned by the user on the token, this function returns a 401 HTTP code (Unauthorized)
+// If an error occurred during the removal, this function returns a
+// 500 HTTP code (Internal Server Error)
+func (s *Server) DeleteGroup(w http.ResponseWriter, r *http.Request) {
+	cookie := GetCookieByNameForRequest(r, s.Configuration.TokenCookieName)
+	if cookie == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	claims, err := s.ValidateAndExtractToken(cookie.Value)
+	if err != nil || claims == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	var groupBody GroupIDBody
+	err = json.NewDecoder(r.Body).Decode(&groupBody)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	// Verification if the group is owned by the user
+	group, err := s.Database.GetGroupByID(groupBody.ID)
+	if err != nil || group == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if group.UserID != claims.ID {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	// Delete the group
+	err = s.Database.DeleteGroup(group.ID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
