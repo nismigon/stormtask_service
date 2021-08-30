@@ -26,6 +26,10 @@ type TaskIDBody struct {
 	ID int
 }
 
+type TaskGroupIDBody struct {
+	GroupID int
+}
+
 // AddTask add a task for the authenticated user
 // In the nominal case, this function returns a 200 HTTP code (OK)
 // If the cookie is not found, or if the token is invalid, this function returns a 401 HTTP code (Unauthorized)
@@ -187,4 +191,47 @@ func (s *Server) DeleteTask(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
+	// Verify and get the token in the cookie
+	cookie := GetCookieByNameForRequest(r, s.Configuration.TokenCookieName)
+	if cookie == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	claims, err := s.ValidateAndExtractToken(cookie.Value)
+	if err != nil || claims == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	var taskBody TaskGroupIDBody
+	err = json.NewDecoder(r.Body).Decode(&taskBody)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	group, err := s.Database.GetGroupByID(taskBody.GroupID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if group == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+	if group.UserID != claims.ID {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	tasks, err := s.Database.GetTasksByGroup(taskBody.GroupID)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(tasks)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

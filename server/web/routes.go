@@ -14,6 +14,7 @@ func (s *Server) InitRoutes() {
 	handlerAddTask := http.HandlerFunc(s.AddTask)
 	handlerModifyTask := http.HandlerFunc(s.ModifyTask)
 	handlerDeleteTask := http.HandlerFunc(s.DeleteTask)
+	handlerGetTasks := http.HandlerFunc(s.GetTasks)
 	s.Router.Handle("/authenticate", handlerAuthenticate).Methods("POST")
 	s.Router.Handle("/user", handlerAddUser).Methods("POST")
 	s.Router.Handle("/user", s.VerifyToken(handlerDeleteUser)).Methods("DELETE")
@@ -25,4 +26,5 @@ func (s *Server) InitRoutes() {
 	s.Router.Handle("/task", s.VerifyToken(handlerAddTask)).Methods("POST")
 	s.Router.Handle("/task", s.VerifyToken(handlerModifyTask)).Methods("PUT")
 	s.Router.Handle("/task", s.VerifyToken(handlerDeleteTask)).Methods("DELETE")
+	s.Router.Handle("/task", s.VerifyToken(handlerGetTasks)).Methods("GET")
 }

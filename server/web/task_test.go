@@ -304,7 +304,7 @@ func (suite *TaskTestSuite) TestDeleteTaskRight() {
 	}
 	taskJSON, err := json.Marshal(taskBody)
 	if err != nil {
-		suite.T().Errorf("Failed to convert into JSON the TaskCompleteBody object : " + err.Error())
+		suite.T().Errorf("Failed to convert into JSON the TaskIDBody object : " + err.Error())
 	}
 	body := bytes.NewBuffer(taskJSON)
 	req, err := http.NewRequest("DELETE", suite.HTTPServer.URL+"/task", body)
@@ -315,7 +315,7 @@ func (suite *TaskTestSuite) TestDeleteTaskRight() {
 	client := &http.Client{}
 	response, err := client.Do(req)
 	if err != nil {
-		suite.T().Errorf("Failed to get the response for the get route : " + err.Error())
+		suite.T().Errorf("Failed to get the response for the delete route : " + err.Error())
 	}
 	assert.Equal(suite.T(), 200, response.StatusCode)
 	task, err := suite.Server.Database.GetTaskByID(suite.Task.ID)
@@ -323,6 +323,33 @@ func (suite *TaskTestSuite) TestDeleteTaskRight() {
 		suite.T().Errorf("Failed to get the task : " + err.Error())
 	}
 	assert.Nil(suite.T(), task)
+}
+
+func (suite *TaskTestSuite) TestGetTasksRight() {
+	taskBody := TaskGroupIDBody{
+		GroupID: suite.Group.ID,
+	}
+	taskJSON, err := json.Marshal(taskBody)
+	if err != nil {
+		suite.T().Errorf("Failed to convert into JSON the TaskGroupIDBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(taskJSON)
+	req, err := http.NewRequest("GET", suite.HTTPServer.URL+"/task", body)
+	if err != nil {
+		suite.T().Errorf("Failed to create a get request for task : " + err.Error())
+	}
+	req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		suite.T().Errorf("Failed to get the response for the get route : " + err.Error())
+	}
+	assert.Equal(suite.T(), 200, response.StatusCode)
+	var tasks []database.TaskInformation
+	err = json.NewDecoder(response.Body).Decode(&tasks)
+	assert.Nil(suite.T(), err)
+	assert.Equal(suite.T(), 1, len(tasks))
+	assert.Equal(suite.T(), suite.Task.ID, tasks[0].ID)
 }
 
 func TestTask(t *testing.T) {

@@ -136,7 +136,7 @@ func (suite *GroupTestSuite) TestAddGroupWrongName() {
 func (suite *GroupTestSuite) TestGetGroupsByUserIDRight() {
 	req, err := http.NewRequest("GET", suite.HTTPServer.URL+"/group", nil)
 	if err != nil {
-		suite.T().Errorf("Failed to create a post request for group : " + err.Error())
+		suite.T().Errorf("Failed to create a get request for group : " + err.Error())
 	}
 	if suite.Cookie != nil {
 		req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
