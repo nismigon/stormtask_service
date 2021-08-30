@@ -298,6 +298,33 @@ func (suite *TaskTestSuite) TestModifyTaskWrongTask() {
 	assert.Equal(suite.T(), 404, response.StatusCode)
 }
 
+func (suite *TaskTestSuite) TestDeleteTaskRight() {
+	taskBody := TaskIDBody{
+		ID: suite.Task.ID,
+	}
+	taskJSON, err := json.Marshal(taskBody)
+	if err != nil {
+		suite.T().Errorf("Failed to convert into JSON the TaskCompleteBody object : " + err.Error())
+	}
+	body := bytes.NewBuffer(taskJSON)
+	req, err := http.NewRequest("DELETE", suite.HTTPServer.URL+"/task", body)
+	if err != nil {
+		suite.T().Errorf("Failed to create a post request for task : " + err.Error())
+	}
+	req.Header.Set("Cookie", suite.Cookie.Name+"="+suite.Cookie.Value)
+	client := &http.Client{}
+	response, err := client.Do(req)
+	if err != nil {
+		suite.T().Errorf("Failed to get the response for the get route : " + err.Error())
+	}
+	assert.Equal(suite.T(), 200, response.StatusCode)
+	task, err := suite.Server.Database.GetTaskByID(suite.Task.ID)
+	if err != nil {
+		suite.T().Errorf("Failed to get the task : " + err.Error())
+	}
+	assert.Nil(suite.T(), task)
+}
+
 func TestTask(t *testing.T) {
 	suite.Run(t, new(TaskTestSuite))
 }
