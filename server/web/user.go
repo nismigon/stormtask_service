@@ -24,11 +24,7 @@ func (s *Server) Authenticate(rw http.ResponseWriter, r *http.Request) {
 		return
 	}
 	token, err := s.generateToken(cred)
-	if err != nil {
-		rw.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	if token == "" {
+	if err != nil || token == "" {
 		rw.WriteHeader(http.StatusUnauthorized)
 		return
 	}

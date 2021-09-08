@@ -33,7 +33,9 @@ func (db *DBHandler) GetTaskByID(id int) (*TaskInformation, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer statement.Close()
+	defer func() {
+		_ = statement.Close()
+	}()
 	row := statement.QueryRow(id)
 	if row == nil {
 		return nil, nil
@@ -56,12 +58,16 @@ func (db *DBHandler) GetTasksByGroup(id int) (*[]TaskInformation, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer statement.Close()
+	defer func() {
+		_ = statement.Close()
+	}()
 	rows, err := statement.Query(id)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
+	defer func() {
+		_ = rows.Close()
+	}()
 	var tasks []TaskInformation
 	for rows.Next() {
 		var task TaskInformation
@@ -88,7 +94,9 @@ func (db *DBHandler) AddTask(
 	if err != nil {
 		return nil, err
 	}
-	defer statement.Close()
+	defer func() {
+		_ = statement.Close()
+	}()
 	result, err := statement.Exec(name, description, isFinished, isArchived, group)
 	if err != nil {
 		return nil, err
@@ -115,7 +123,9 @@ func (db *DBHandler) ModifyTask(id int,
 	if err != nil {
 		return nil, err
 	}
-	defer statement.Close()
+	defer func() {
+		_ = statement.Close()
+	}()
 	_, err = statement.Exec(name, description, isFinished, isArchived, group, id)
 	if err != nil {
 		return nil, err
@@ -128,6 +138,9 @@ func (db *DBHandler) ModifyTask(id int,
 func (db *DBHandler) DeleteTask(id int) error {
 	deleteTask := "DELETE FROM stormtask_task WHERE id_task = ?"
 	statement, err := db.Handler.Prepare(deleteTask)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return err
 	}
@@ -141,6 +154,9 @@ func (db *DBHandler) DeleteTask(id int) error {
 func (db *DBHandler) DeleteTasksByGroup(id int) error {
 	deleteTasks := "DELETE FROM stormtask_task WHERE id_group = ?"
 	statement, err := db.Handler.Prepare(deleteTasks)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return err
 	}

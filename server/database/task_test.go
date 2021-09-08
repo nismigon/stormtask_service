@@ -21,12 +21,12 @@ func (suite *TaskTestSuite) SetupTest() {
 	if err != nil {
 		suite.T().Errorf("Failed to parse the configuration file : " + err.Error())
 	}
-	handler, err := Init(conf.DatabaseURL, conf.DatabaseUser, conf.DatabasePassword, conf.DatabaseName)
+	handler, err := Init(conf.DatabaseURL, conf.DatabaseUser, conf.DatabasePassword, conf.DatabaseName, conf.BcryptCost)
 	if err != nil {
 		suite.T().Errorf("Failed to initialize the connection with the database : " + err.Error())
 	}
 	suite.Handler = handler
-	user, err := handler.AddUser("test@test.com", "Test", "Test", false)
+	user, err := handler.AddUser("database_task_test@test.com", "Test", "Test", false)
 	if err != nil {
 		suite.T().Errorf("Failed to add the user in the database : " + err.Error())
 	}

@@ -26,6 +26,9 @@ func (db *DBHandler) GroupInit() error {
 func (db *DBHandler) GetGroupByID(id int) (*GroupInformation, error) {
 	getGroupRequest := `SELECT id_group, name, id_user FROM stormtask_group WHERE id_group=?`
 	statement, err := db.Handler.Prepare(getGroupRequest)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return nil, err
 	}
@@ -33,6 +36,9 @@ func (db *DBHandler) GetGroupByID(id int) (*GroupInformation, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer func() {
+		_ = rows.Close()
+	}()
 	if rows.Next() {
 		var group GroupInformation
 		err = rows.Scan(&group.ID, &group.Name, &group.UserID)
@@ -49,10 +55,16 @@ func (db *DBHandler) GetGroupByID(id int) (*GroupInformation, error) {
 func (db *DBHandler) GetGroupByUserAndName(userID int, name string) (*GroupInformation, error) {
 	getGroupRequest := `SELECT id_group, name, id_user FROM stormtask_group WHERE id_user=? AND name=?`
 	statement, err := db.Handler.Prepare(getGroupRequest)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return nil, err
 	}
 	rows, err := statement.Query(userID, name)
+	defer func() {
+		_ = rows.Close()
+	}()
 	if err != nil {
 		return nil, err
 	}
@@ -73,10 +85,16 @@ func (db *DBHandler) GetGroupByUserAndName(userID int, name string) (*GroupInfor
 func (db *DBHandler) GetGroupsByUserID(userID int) (*[]GroupInformation, error) {
 	getGroupsRequest := `SELECT id_group, name, id_user FROM stormtask_group WHERE id_user=?`
 	statement, err := db.Handler.Prepare(getGroupsRequest)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return nil, err
 	}
 	rows, err := statement.Query(userID)
+	defer func() {
+		_ = rows.Close()
+	}()
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +116,9 @@ func (db *DBHandler) GetGroupsByUserID(userID int) (*[]GroupInformation, error) 
 func (db *DBHandler) AddGroup(userID int, groupName string) (*GroupInformation, error) {
 	addUserRequest := `INSERT INTO stormtask_group (id_user, name) VALUES (?, ?)`
 	statement, err := db.Handler.Prepare(addUserRequest)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return nil, err
 	}
@@ -113,6 +134,9 @@ func (db *DBHandler) AddGroup(userID int, groupName string) (*GroupInformation, 
 func (db *DBHandler) ModifyGroup(groupID int, groupName string) (*GroupInformation, error) {
 	changeGroupNameRequest := `UPDATE stormtask_group SET name=? WHERE id_group=?`
 	statement, err := db.Handler.Prepare(changeGroupNameRequest)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return nil, err
 	}
@@ -132,6 +156,9 @@ func (db *DBHandler) DeleteGroup(groupID int) error {
 	}
 	deleteRequest := `DELETE FROM stormtask_group WHERE id_group=?`
 	statement, err := db.Handler.Prepare(deleteRequest)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return err
 	}

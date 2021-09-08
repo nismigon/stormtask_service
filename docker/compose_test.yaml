@@ -4,6 +4,8 @@ services:
   database:
     image: mariadb
     container_name: stormtask_database_container
+    ports:
+      - "3306:3306"
     environment:
       MARIADB_ROOT_PASSWORD: mhYRrXUux5i7PmXLqmDuLrqEQ5tAQa
       MARIADB_DATABASE: stormtask_database
@@ -22,6 +24,8 @@ services:
       - "test"
       - "./server/..."
       - "-cover"
+      - "-parallel"
+      - "1"
     environment:
       DATABASE_URL: stormtask_database_container
       DATABASE_USER: stormtask_user
@@ -29,3 +33,4 @@ services:
       DATABASE_NAME: stormtask_database
       JWT_SECRET_KEY: SgVkYp3s6v9y*B&E)H@McQfThWmZq4t7
       TOKEN_COOKIE_NAME: JWT_token
+      BCRYPT_COST: 9

@@ -16,7 +16,7 @@ func (suite *DatabaseTestSuite) TestInit() {
 	if err != nil {
 		suite.T().Errorf("Failed to parse the configuration file : " + err.Error())
 	}
-	handler, err := Init(conf.DatabaseURL, conf.DatabaseUser, conf.DatabasePassword, conf.DatabaseName)
+	handler, err := Init(conf.DatabaseURL, conf.DatabaseUser, conf.DatabasePassword, conf.DatabaseName, conf.BcryptCost)
 	if err != nil {
 		suite.T().Errorf("Failed to init the database connection : " + err.Error())
 	} else {
@@ -33,7 +33,7 @@ func (suite *DatabaseTestSuite) TestInitWrongURL() {
 		suite.T().Errorf("Failed to parse the configuration file : " + err.Error())
 		suite.T().FailNow()
 	}
-	handler, err := Init("toto", conf.DatabaseUser, conf.DatabasePassword, conf.DatabaseName)
+	handler, err := Init("toto", conf.DatabaseUser, conf.DatabasePassword, conf.DatabaseName, conf.BcryptCost)
 	if err == nil {
 		suite.T().Errorf("This test should fail : Wrong database URL given")
 		err = handler.Close()
@@ -50,7 +50,7 @@ func (suite *DatabaseTestSuite) TestInitWrongUser() {
 		suite.T().Errorf("Failed to parse the configuration file : " + err.Error())
 		suite.T().FailNow()
 	}
-	handler, err := Init(conf.DatabaseURL, "toto", conf.DatabasePassword, conf.DatabaseName)
+	handler, err := Init(conf.DatabaseURL, "toto", conf.DatabasePassword, conf.DatabaseName, conf.BcryptCost)
 	if err == nil {
 		suite.T().Errorf("This test should fail : Wrong database user given")
 		err = handler.Close()
@@ -66,7 +66,7 @@ func (suite *DatabaseTestSuite) TestInitWrongPassword() {
 	if err != nil {
 		suite.T().Errorf("Failed to parse the configuration file : " + err.Error())
 	}
-	handler, err := Init(conf.DatabaseURL, conf.DatabaseUser, "password", conf.DatabaseName)
+	handler, err := Init(conf.DatabaseURL, conf.DatabaseUser, "password", conf.DatabaseName, conf.BcryptCost)
 	if err == nil {
 		suite.T().Errorf("This test should fail : Wrong database password given")
 		err = handler.Close()
@@ -82,7 +82,7 @@ func (suite *DatabaseTestSuite) TestInitWrongName() {
 	if err != nil {
 		suite.T().Errorf("Failed to parse the configuration file : " + err.Error())
 	}
-	handler, err := Init(conf.DatabaseURL, conf.DatabaseUser, conf.DatabasePassword, "toto")
+	handler, err := Init(conf.DatabaseURL, conf.DatabaseUser, conf.DatabasePassword, "toto", conf.BcryptCost)
 	if err == nil {
 		suite.T().Errorf("This test should fail : Wrong database name given")
 		err = handler.Close()

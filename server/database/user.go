@@ -1,5 +1,7 @@
 package database
 
+import "golang.org/x/crypto/bcrypt"
+
 type UserInformation struct {
 	ID       int
 	Name     string
@@ -28,6 +30,9 @@ func (db *DBHandler) UserInit() error {
 func (db *DBHandler) GetUserByEmail(email string) (*UserInformation, error) {
 	getUser := "SELECT id_user, name, password, email, is_admin FROM stormtask_user WHERE email=?"
 	statement, err := db.Handler.Prepare(getUser)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return nil, err
 	}
@@ -52,6 +57,9 @@ func (db *DBHandler) GetUserByEmail(email string) (*UserInformation, error) {
 func (db *DBHandler) GetUserByID(id int) (*UserInformation, error) {
 	getUser := "SELECT id_user, name, password, email, is_admin FROM stormtask_user WHERE id_user=?"
 	statement, err := db.Handler.Prepare(getUser)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +82,7 @@ func (db *DBHandler) GetUserByID(id int) (*UserInformation, error) {
 // Return a pointer of UserInformation if a user is found,
 // nil if no user with this email ant this password is found or
 // error if an error occurred during the request
-func (db *DBHandler) Authenticate(email, password string) (*UserInformation, error) {
+func (db *DBHandler) Authenticate(email string, password string) (*UserInformation, error) {
 	user, err := db.GetUserByEmail(email)
 	if err != nil {
 		return nil, err
@@ -82,10 +90,11 @@ func (db *DBHandler) Authenticate(email, password string) (*UserInformation, err
 	if user == nil {
 		return nil, nil
 	}
-	if user.Password == password {
-		return user, nil
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		return nil, err
 	}
-	return nil, nil
+	return user, nil
 }
 
 // AddUser add a user to the database
@@ -93,10 +102,17 @@ func (db *DBHandler) Authenticate(email, password string) (*UserInformation, err
 func (db *DBHandler) AddUser(email, name, password string, isAdmin bool) (*UserInformation, error) {
 	addUserRequest := `INSERT INTO stormtask_user (name, email, password, is_admin) VALUES (?, ?, ?, ?)`
 	statement, err := db.Handler.Prepare(addUserRequest)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return nil, err
 	}
-	_, err = statement.Exec(name, email, password, isAdmin)
+	hashedPassword, err := hashedPassword(password, db.BcryptCost)
+	if err != nil {
+		return nil, err
+	}
+	_, err = statement.Exec(name, email, hashedPassword, isAdmin)
 	if err != nil {
 		return nil, err
 	}
@@ -108,10 +124,17 @@ func (db *DBHandler) AddUser(email, name, password string, isAdmin bool) (*UserI
 func (db *DBHandler) ModifyUser(id int, email, name, password string) (*UserInformation, error) {
 	modifyUserRequest := `UPDATE stormtask_user SET email=?, name=?, password=? WHERE id_user=?`
 	statement, err := db.Handler.Prepare(modifyUserRequest)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return nil, err
 	}
-	_, err = statement.Exec(email, name, password, id)
+	hashedPassword, err := hashedPassword(password, db.BcryptCost)
+	if err != nil {
+		return nil, err
+	}
+	_, err = statement.Exec(email, name, hashedPassword, id)
 	if err != nil {
 		return nil, err
 	}
@@ -127,9 +150,17 @@ func (db *DBHandler) DeleteUser(id int) error {
 	}
 	deleteUserRequest := `DELETE FROM stormtask_user WHERE id_user=?`
 	statement, err := db.Handler.Prepare(deleteUserRequest)
+	defer func() {
+		_ = statement.Close()
+	}()
 	if err != nil {
 		return err
 	}
 	_, err = statement.Exec(id)
 	return err
+}
+
+func hashedPassword(password string, cost int) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), cost)
+	return string(bytes), err
 }

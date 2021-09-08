@@ -32,7 +32,7 @@ func (suite *TaskTestSuite) SetupTest() {
 	if err != nil {
 		suite.T().Errorf("Failed to init the web server : " + err.Error())
 	}
-	user, err := server.Database.AddUser("test@test.com", "Test", "Test", false)
+	user, err := server.Database.AddUser("web_task_test@test.com", "Test", "Test", false)
 	if err != nil {
 		suite.T().Errorf("Failed to add the user : " + err.Error())
 	}
@@ -46,7 +46,7 @@ func (suite *TaskTestSuite) SetupTest() {
 	}
 	httpServer := httptest.NewServer(server.Router)
 	cred := Credentials{
-		Email:    "test@test.com",
+		Email:    "web_task_test@test.com",
 		Password: "Test",
 	}
 	content, err := json.Marshal(cred)
@@ -112,12 +112,6 @@ func (suite *TaskTestSuite) TestAddTaskRight() {
 func (suite *TaskTestSuite) TestAddTaskWrongGroupForUser() {
 	user, err := suite.Server.Database.AddUser("user@user.com", "User", "Password", false)
 	assert.Nil(suite.T(), err)
-	defer func(Database *database.DBHandler, id int) {
-		err := Database.DeleteUser(id)
-		if err != nil {
-			suite.T().Errorf("Failed to delete the user with error : " + err.Error())
-		}
-	}(suite.Server.Database, user.ID)
 	group, err := suite.Server.Database.AddGroup(user.ID, "MyGroup")
 	assert.Nil(suite.T(), err)
 	taskBody := TaskWithoutIDBody{
@@ -143,6 +137,10 @@ func (suite *TaskTestSuite) TestAddTaskWrongGroupForUser() {
 		suite.T().Errorf("Failed to get the response for the get route : " + err.Error())
 	}
 	assert.Equal(suite.T(), 401, response.StatusCode)
+	err = suite.Server.Database.DeleteUser(user.ID)
+	if err != nil {
+		suite.T().Errorf("Failed to delete the user : " + err.Error())
+	}
 }
 
 func (suite *TaskTestSuite) TestAddTaskWrongGroupId() {
@@ -210,12 +208,6 @@ func (suite *TaskTestSuite) TestModifyTaskRight() {
 func (suite *TaskTestSuite) TestModifyTaskWrongGroupForUser() {
 	user, err := suite.Server.Database.AddUser("user@user.com", "User", "Password", false)
 	assert.Nil(suite.T(), err)
-	defer func(Database *database.DBHandler, id int) {
-		err := Database.DeleteUser(id)
-		if err != nil {
-			suite.T().Errorf("Failed to delete the user with error : " + err.Error())
-		}
-	}(suite.Server.Database, user.ID)
 	group, err := suite.Server.Database.AddGroup(user.ID, "MyGroup")
 	assert.Nil(suite.T(), err)
 	taskBody := TaskCompleteBody{
@@ -242,6 +234,10 @@ func (suite *TaskTestSuite) TestModifyTaskWrongGroupForUser() {
 		suite.T().Errorf("Failed to get the response for the get route : " + err.Error())
 	}
 	assert.Equal(suite.T(), 401, response.StatusCode)
+	err = suite.Server.Database.DeleteUser(user.ID)
+	if err != nil {
+		suite.T().Errorf("Failed to delete the user : " + err.Error())
+	}
 }
 
 func (suite *TaskTestSuite) TestModifyTaskWrongGroupId() {

@@ -32,7 +32,7 @@ func (suite *GroupTestSuite) SetupTest() {
 	if err != nil {
 		suite.T().Errorf("Failed to init the web server : " + err.Error())
 	}
-	user, err := server.Database.AddUser("test@test.com", "Test", "Test", false)
+	user, err := server.Database.AddUser("web_group_test@test.com", "Test", "Test", false)
 	if err != nil {
 		suite.T().Errorf("Failed to add the user : " + err.Error())
 	}
@@ -42,7 +42,7 @@ func (suite *GroupTestSuite) SetupTest() {
 	}
 	httpServer := httptest.NewServer(server.Router)
 	cred := Credentials{
-		Email:    "test@test.com",
+		Email:    "web_group_test@test.com",
 		Password: "Test",
 	}
 	content, err := json.Marshal(cred)
@@ -217,12 +217,6 @@ func (suite *GroupTestSuite) TestModifyGroupWrongUserID() {
 	if err != nil {
 		suite.T().Errorf("Failed to add the user to the database : " + err.Error())
 	}
-	defer func(Database *database.DBHandler, id int) {
-		err := Database.DeleteUser(id)
-		if err != nil {
-			suite.T().Errorf("Failed to delete the user with error : " + err.Error())
-		}
-	}(suite.Server.Database, user.ID)
 	group, err := suite.Server.Database.AddGroup(user.ID, "MyGroup")
 	if err != nil {
 		suite.T().Errorf("Failed to add group to the database : " + err.Error())
@@ -247,6 +241,10 @@ func (suite *GroupTestSuite) TestModifyGroupWrongUserID() {
 		suite.T().Errorf("Failed to get the response for the modify route : " + err.Error())
 	}
 	assert.Equal(suite.T(), 401, response.StatusCode)
+	err = suite.Server.Database.DeleteUser(user.ID)
+	if err != nil {
+		suite.T().Errorf("Failed to delete the user : " + err.Error())
+	}
 }
 
 func (suite *GroupTestSuite) TestDeleteGroupRight() {
@@ -303,12 +301,6 @@ func (suite *GroupTestSuite) TestDeleteGroupWrongUserID() {
 	if err != nil {
 		suite.T().Errorf("Failed to add the user to the database : " + err.Error())
 	}
-	defer func(Database *database.DBHandler, id int) {
-		err := Database.DeleteUser(id)
-		if err != nil {
-			suite.T().Errorf("Failed to delete the user with error : " + err.Error())
-		}
-	}(suite.Server.Database, user.ID)
 	group, err := suite.Server.Database.AddGroup(user.ID, "MyGroup")
 	if err != nil {
 		suite.T().Errorf("Failed to add group to the database : " + err.Error())
@@ -332,6 +324,10 @@ func (suite *GroupTestSuite) TestDeleteGroupWrongUserID() {
 		suite.T().Errorf("Failed to get the response for the delete route : " + err.Error())
 	}
 	assert.Equal(suite.T(), 401, response.StatusCode)
+	err = suite.Server.Database.DeleteUser(user.ID)
+	if err != nil {
+		suite.T().Errorf("Failed to delete the user : " + err.Error())
+	}
 }
 
 func TestGroup(t *testing.T) {

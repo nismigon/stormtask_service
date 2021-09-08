@@ -19,12 +19,16 @@ func (suite *GroupTestSuite) SetupTest() {
 	if err != nil {
 		suite.T().Errorf("Failed to parse the configuration file : " + err.Error())
 	}
-	handler, err := Init(conf.DatabaseURL, conf.DatabaseUser, conf.DatabasePassword, conf.DatabaseName)
+	handler, err := Init(conf.DatabaseURL, conf.DatabaseUser, conf.DatabasePassword, conf.DatabaseName, conf.BcryptCost)
 	if err != nil {
 		suite.T().Errorf("Failed to initialize the connection with the database : " + err.Error())
 	}
 	suite.Handler = handler
-	user, err := handler.AddUser("test@test.com", "Test", "Test", false)
+	user, _ := handler.GetUserByEmail("database_group_test@test.com")
+	if user != nil {
+		_ = handler.DeleteUser(user.ID)
+	}
+	user, err = handler.AddUser("database_group_test@test.com", "Test", "Test", false)
 	if err != nil {
 		suite.T().Errorf("Failed to add the user into the database : " + err.Error())
 	}

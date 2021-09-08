@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 type ConfStruct struct {
@@ -14,6 +15,7 @@ type ConfStruct struct {
 	DatabaseName     string `json:"database_name"`
 	JWTSecretKey     string `json:"jwt_secret_key"`
 	TokenCookieName  string `json:"token_cookie_name"`
+	BcryptCost       int    `json:"bcrypt_cost"`
 }
 
 // Parse analyze a configuration file and return the corresponding struct
@@ -58,6 +60,14 @@ func Parse(path string) (*ConfStruct, error) {
 	tokenCookieName, set := os.LookupEnv("TOKEN_COOKIE_NAME")
 	if set {
 		conf.TokenCookieName = tokenCookieName
+	}
+	bcryptCost, set := os.LookupEnv("BCRYPT_COST")
+	if set {
+		cost, err := strconv.Atoi(bcryptCost)
+		if err != nil {
+			return nil, err
+		}
+		conf.BcryptCost = cost
 	}
 	return &conf, nil
 }

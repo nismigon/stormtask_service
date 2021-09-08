@@ -20,7 +20,8 @@ func InitServer(configuration configuration.ConfStruct) (*Server, error) {
 		configuration.DatabaseURL,
 		configuration.DatabaseUser,
 		configuration.DatabasePassword,
-		configuration.DatabaseName)
+		configuration.DatabaseName,
+		configuration.BcryptCost)
 	if err != nil {
 		return nil, err
 	}

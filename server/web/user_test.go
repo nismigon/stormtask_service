@@ -15,9 +15,10 @@ import (
 
 type UserTestSuite struct {
 	suite.Suite
-	Server     *Server
-	HTTPServer *httptest.Server
-	User       *database.UserInformation
+	Server       *Server
+	HTTPServer   *httptest.Server
+	User         *database.UserInformation
+	UserPassword string
 }
 
 func (suite *UserTestSuite) SetupTest() {
@@ -29,7 +30,7 @@ func (suite *UserTestSuite) SetupTest() {
 	if err != nil {
 		suite.T().Errorf("Failed to init the web server : " + err.Error())
 	}
-	user, err := server.Database.AddUser("test@test.com", "Test", "Test", false)
+	user, err := server.Database.AddUser("web_user_test@test.com", "Test", "Test", false)
 	if err != nil {
 		suite.T().Errorf("Failed to add the user : " + err.Error())
 	}
@@ -37,6 +38,7 @@ func (suite *UserTestSuite) SetupTest() {
 	suite.Server = server
 	suite.HTTPServer = httpServer
 	suite.User = user
+	suite.UserPassword = "Test"
 }
 
 func (suite *UserTestSuite) TearDownTest() {
@@ -48,7 +50,7 @@ func (suite *UserTestSuite) TearDownTest() {
 func (suite *UserTestSuite) TestAuthenticateRight() {
 	var cred Credentials
 	cred.Email = suite.User.Email
-	cred.Password = suite.User.Password
+	cred.Password = suite.UserPassword
 	authJSON, err := json.Marshal(cred)
 	if err != nil {
 		suite.T().Errorf("Failed to convert the authencication object into JSON : " + err.Error())
@@ -134,7 +136,7 @@ func (suite *UserTestSuite) TestAddUserRight() {
 
 func (suite *UserTestSuite) TestAddUserWrongAlreadyExistEmail() {
 	userStruct := UserBody{
-		Email:    "test@test.com",
+		Email:    "web_user_test@test.com",
 		Password: "Test",
 		Name:     "Test",
 	}
@@ -154,7 +156,7 @@ func (suite *UserTestSuite) TestAddUserWrongAlreadyExistEmail() {
 
 func (suite *UserTestSuite) TestDeleteUserRight() {
 	cred := Credentials{
-		Email:    "test@test.com",
+		Email:    "web_user_test@test.com",
 		Password: "Test",
 	}
 	content, err := json.Marshal(cred)
@@ -214,7 +216,7 @@ func (suite *UserTestSuite) TestDeleteUserWrongToken() {
 
 func (suite *UserTestSuite) TestModifyUserRight() {
 	cred := Credentials{
-		Email:    "test@test.com",
+		Email:    "web_user_test@test.com",
 		Password: "Test",
 	}
 	content, err := json.Marshal(cred)
@@ -264,7 +266,7 @@ func (suite *UserTestSuite) TestModifyUserWrongAlreadyTakenEmail() {
 		suite.T().Errorf("Failed to add the user : " + err.Error())
 	}
 	cred := Credentials{
-		Email:    "test@test.com",
+		Email:    "web_user_test@test.com",
 		Password: "Test",
 	}
 	content, err := json.Marshal(cred)
@@ -314,7 +316,7 @@ func (suite *UserTestSuite) TestModifyUserWrongAlreadyTakenEmail() {
 
 func (suite *UserTestSuite) TestModifyUserWrongInvalidToken() {
 	cred := Credentials{
-		Email:    "test@test.com",
+		Email:    "web_user_test@test.com",
 		Password: "Test",
 	}
 	content, err := json.Marshal(cred)
@@ -334,7 +336,7 @@ func (suite *UserTestSuite) TestModifyUserWrongInvalidToken() {
 	}
 	client := &http.Client{}
 	userStruct := UserBody{
-		Email:    "test@test.com",
+		Email:    "web_user_test@test.com",
 		Password: "Test2",
 		Name:     "Test2",
 	}

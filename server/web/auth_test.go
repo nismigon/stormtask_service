@@ -29,13 +29,13 @@ func (suite *AuthTestSuite) TearDownTest() {
 }
 
 func (suite *AuthTestSuite) TestGenerateTokenRight() {
-	user, err := suite.Server.Database.AddUser("test@test.com", "Test", "Test", false)
+	user, err := suite.Server.Database.AddUser("web_auth_test@test.com", "Test", "Test", false)
 	if err != nil {
 		suite.T().Errorf("Failed to add the user : " + err.Error())
 	}
 	var cred = Credentials{
 		Email:    user.Email,
-		Password: user.Password,
+		Password: "Test",
 	}
 	token, err := suite.Server.generateToken(cred)
 	if err != nil {
@@ -71,7 +71,7 @@ func (suite *AuthTestSuite) TestGenerateTokenRight() {
 }
 
 func (suite *AuthTestSuite) TestGenerateTokenWrongEmail() {
-	user, err := suite.Server.Database.AddUser("test@test.com", "Test", "Test", false)
+	user, err := suite.Server.Database.AddUser("web_auth_test@test.com", "Test", "Test", false)
 	if err != nil {
 		suite.T().Errorf("Failed to add the user : " + err.Error())
 	}
@@ -93,7 +93,7 @@ func (suite *AuthTestSuite) TestGenerateTokenWrongEmail() {
 }
 
 func (suite *AuthTestSuite) TestGenerateTokenWrongPassword() {
-	user, err := suite.Server.Database.AddUser("test@test.com", "Test", "Test", false)
+	user, err := suite.Server.Database.AddUser("web_auth_test@test.com", "Test", "Test", false)
 	if err != nil {
 		suite.T().Errorf("Failed to add the user : " + err.Error())
 	}
@@ -101,12 +101,9 @@ func (suite *AuthTestSuite) TestGenerateTokenWrongPassword() {
 		Email:    user.Email,
 		Password: "toto",
 	}
-	token, err := suite.Server.generateToken(cred)
-	if err != nil {
-		suite.T().Errorf("Failed to generate the token : " + err.Error())
-	}
-	if token != "" {
-		suite.T().Errorf("Failed to generate the token : A wrong password give a correct token")
+	_, err = suite.Server.generateToken(cred)
+	if err == nil {
+		suite.T().Errorf("Failed to generate the token : No error found for a false credentials")
 	}
 	err = suite.Server.Database.DeleteUser(user.ID)
 	if err != nil {

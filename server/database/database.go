@@ -7,11 +7,12 @@ import (
 )
 
 type DBHandler struct {
-	Handler  *sql.DB // Handler of the database connection
-	URL      string  // Url to connect to the database
-	User     string  // User to connect to the database
-	Password string  // Password to connect to the database
-	Name     string  // Name of the database
+	Handler    *sql.DB // Handler of the database connection
+	URL        string  // Url to connect to the database
+	User       string  // User to connect to the database
+	Password   string  // Password to connect to the database
+	Name       string  // Name of the database
+	BcryptCost int     // Bcrypt cost
 }
 
 // Init initializes the connection to the database
@@ -19,7 +20,7 @@ type DBHandler struct {
 // databaseUser 	The user to connect to the database
 // databasePassword The password to connect to the database
 // databaseName 	The name of the database
-func Init(databaseURL, databaseUser, databasePassword, databaseName string) (*DBHandler, error) {
+func Init(databaseURL, databaseUser, databasePassword, databaseName string, bcryptCost int) (*DBHandler, error) {
 	dataSource := databaseUser + ":" + databasePassword + "@tcp(" + databaseURL + ")/"
 	// Open the connection with the database
 	db, err := sql.Open("mysql", dataSource)
@@ -43,11 +44,12 @@ func Init(databaseURL, databaseUser, databasePassword, databaseName string) (*DB
 		return nil, err
 	}
 	handler := &DBHandler{
-		Handler:  db,
-		URL:      databaseURL,
-		User:     databaseUser,
-		Password: databasePassword,
-		Name:     databaseName,
+		Handler:    db,
+		URL:        databaseURL,
+		User:       databaseUser,
+		Password:   databasePassword,
+		Name:       databaseName,
+		BcryptCost: bcryptCost,
 	}
 	err = handler.UserInit()
 	if err != nil {

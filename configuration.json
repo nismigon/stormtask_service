@@ -4,5 +4,6 @@
     "database_password": "vV4UbidqXzCj62pxiSsC8gnQTtNfcm",
     "database_name": "stormtask_database",
     "jwt_secret_key": "SgVkYp3s6v9y$B&E)H@McQfThWmZq4t7",
-    "token_cookie_name": "JWT_token"
+    "token_cookie_name": "JWT_token",
+    "bcrypt_cost" : 14
 }
