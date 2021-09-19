@@ -26,8 +26,8 @@ services:
     ports:
       - 8000:8000
     environment:
-      ADDRESS : 0.0.0.0
-      PORT : 8000
+      ADDRESS: 0.0.0.0
+      PORT: 8000
       DATABASE_URL: stormtask_database_container
       DATABASE_USER: stormtask_user
       DATABASE_PASSWORD: vV4UbidqXzCj62pxiSsC8gnQTtNfcm
