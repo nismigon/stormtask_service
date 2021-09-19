@@ -9,6 +9,8 @@ import (
 )
 
 type ConfStruct struct {
+	Address          string `json:"address"`
+	Port             int    `json:"port"`
 	DatabaseURL      string `json:"database_url"`
 	DatabaseUser     string `json:"database_user"`
 	DatabasePassword string `json:"database_password"`
@@ -36,6 +38,18 @@ func Parse(path string) (*ConfStruct, error) {
 	err = json.Unmarshal(byteValue, &conf)
 	if err != nil {
 		return nil, err
+	}
+	address, set := os.LookupEnv("ADDRESS")
+	if set {
+		conf.Address = address
+	}
+	portStr, set := os.LookupEnv("PORT")
+	if set {
+		port, err := strconv.Atoi(portStr)
+		if err != nil {
+			return nil, err
+		}
+		conf.Port = port
 	}
 	databaseURL, set := os.LookupEnv("DATABASE_URL")
 	if set {

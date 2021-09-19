@@ -6,16 +6,16 @@ import (
 )
 
 type GroupIDBody struct {
-	ID int
+	ID int `json:"id"`
 }
 
 type GroupNameBody struct {
-	Name string
+	Name string `json:"name"`
 }
 
 type GroupIDNameBody struct {
-	ID   int
-	Name string
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
 
 // AddGroup add a group for the authenticated user

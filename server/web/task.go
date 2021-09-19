@@ -6,28 +6,28 @@ import (
 )
 
 type TaskWithoutIDBody struct {
-	Name        string
-	Description string
-	IsFinished  bool
-	IsArchived  bool
-	IDGroup     int
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	IsFinished  bool   `json:"is_finished"`
+	IsArchived  bool   `json:"is_archived"`
+	IDGroup     int    `json:"id_group"`
 }
 
 type TaskCompleteBody struct {
-	ID          int
-	Name        string
-	Description string
-	IsFinished  bool
-	IsArchived  bool
-	IDGroup     int
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	IsFinished  bool   `json:"is_finished"`
+	IsArchived  bool   `json:"is_archived"`
+	IDGroup     int    `json:"id_group"`
 }
 
 type TaskIDBody struct {
-	ID int
+	ID int `json:"id"`
 }
 
 type TaskGroupIDBody struct {
-	GroupID int
+	GroupID int `json:"group_id"`
 }
 
 // AddTask add a task for the authenticated user

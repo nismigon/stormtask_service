@@ -6,9 +6,9 @@ import (
 )
 
 type UserBody struct {
-	Email    string
-	Password string
-	Name     string
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Name     string `json:"name"`
 }
 
 // Authenticate is an HTTP handler method to get a client authentication
