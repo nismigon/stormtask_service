@@ -20,6 +20,9 @@ func main() {
 	http.Handle("/", server.Router)
 	completeAddress := conf.Address + ":" + strconv.Itoa(conf.Port)
 	fmt.Println("Server listening on " + completeAddress)
-	http.ListenAndServe(completeAddress, nil)
+	err = http.ListenAndServe(completeAddress, nil)
+	if err != nil {
+		fmt.Println("An error occurred : " + err.Error())
+	}
 	fmt.Println("Server has been closed...")
 }

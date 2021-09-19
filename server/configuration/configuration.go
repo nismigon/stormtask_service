@@ -39,10 +39,7 @@ func Parse(path string) (*ConfStruct, error) {
 	if err != nil {
 		return nil, err
 	}
-	address, set := os.LookupEnv("ADDRESS")
-	if set {
-		conf.Address = address
-	}
+	conf.Address = setStringEnvVariable(conf.Address, "ADDRESS")
 	portStr, set := os.LookupEnv("PORT")
 	if set {
 		port, err := strconv.Atoi(portStr)
@@ -51,30 +48,12 @@ func Parse(path string) (*ConfStruct, error) {
 		}
 		conf.Port = port
 	}
-	databaseURL, set := os.LookupEnv("DATABASE_URL")
-	if set {
-		conf.DatabaseURL = databaseURL
-	}
-	databaseUser, set := os.LookupEnv("DATABASE_USER")
-	if set {
-		conf.DatabaseUser = databaseUser
-	}
-	databasePassword, set := os.LookupEnv("DATABASE_PASSWORD")
-	if set {
-		conf.DatabasePassword = databasePassword
-	}
-	databaseName, set := os.LookupEnv("DATABASE_NAME")
-	if set {
-		conf.DatabaseName = databaseName
-	}
-	jwtSecretKey, set := os.LookupEnv("JWT_SECRET_KEY")
-	if set {
-		conf.JWTSecretKey = jwtSecretKey
-	}
-	tokenCookieName, set := os.LookupEnv("TOKEN_COOKIE_NAME")
-	if set {
-		conf.TokenCookieName = tokenCookieName
-	}
+	conf.DatabaseURL = setStringEnvVariable(conf.DatabaseURL, "DATABASE_URL")
+	conf.DatabaseUser = setStringEnvVariable(conf.DatabaseUser, "DATABASE_USER")
+	conf.DatabasePassword = setStringEnvVariable(conf.DatabasePassword, "DATABASE_PASSWORD")
+	conf.DatabaseName = setStringEnvVariable(conf.DatabaseName, "DATABASE_NAME")
+	conf.JWTSecretKey = setStringEnvVariable(conf.JWTSecretKey, "JWT_SECRET_KEY")
+	conf.TokenCookieName = setStringEnvVariable(conf.TokenCookieName, "TOKEN_COOKIE_NAME")
 	bcryptCost, set := os.LookupEnv("BCRYPT_COST")
 	if set {
 		cost, err := strconv.Atoi(bcryptCost)
@@ -84,4 +63,12 @@ func Parse(path string) (*ConfStruct, error) {
 		conf.BcryptCost = cost
 	}
 	return &conf, nil
+}
+
+func setStringEnvVariable(current, environment string) string {
+	variable, set := os.LookupEnv(environment)
+	if set {
+		return variable
+	}
+	return current
 }

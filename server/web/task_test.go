@@ -323,7 +323,7 @@ func (suite *TaskTestSuite) TestDeleteTaskRight() {
 
 func (suite *TaskTestSuite) TestGetTasksRight() {
 	taskBody := TaskGroupIDBody{
-		GroupID: suite.Group.ID,
+		IDGroup: suite.Group.ID,
 	}
 	taskJSON, err := json.Marshal(taskBody)
 	if err != nil {
