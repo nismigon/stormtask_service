@@ -27,7 +27,7 @@ type TaskIDBody struct {
 }
 
 type TaskGroupIDBody struct {
-	GroupID int `json:"group_id"`
+	IDGroup int `json:"id_group"`
 }
 
 // AddTask add a task for the authenticated user
@@ -211,7 +211,7 @@ func (s *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	group, err := s.Database.GetGroupByID(taskBody.GroupID)
+	group, err := s.Database.GetGroupByID(taskBody.IDGroup)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -224,7 +224,7 @@ func (s *Server) GetTasks(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	tasks, err := s.Database.GetTasksByGroup(taskBody.GroupID)
+	tasks, err := s.Database.GetTasksByGroup(taskBody.IDGroup)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
